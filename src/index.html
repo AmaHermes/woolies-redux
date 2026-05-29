@@ -310,6 +310,54 @@
   .cta-btn.ghost:hover { background: var(--green-soft); }
   .cta-btn .price { margin-left: auto; opacity: .9; font-weight: 600; font-size: 13.5px; }
 
+  /* Courier picker */
+  .couriers { display: grid; gap: 10px; }
+  .courier {
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+    overflow: hidden;
+    display: block;
+  }
+  .courier:has(input:checked) {
+    border-color: var(--green);
+    background: var(--green-soft);
+  }
+  .courier input { position: absolute; opacity: 0; pointer-events: none; }
+  .courier .c-body { padding: 12px 14px; }
+  .courier .c-head { display: flex; align-items: center; gap: 12px; }
+  .courier .c-emoji { font-size: 26px; }
+  .courier .c-name { font-size: 14.5px; font-weight: 700; letter-spacing: -0.1px; }
+  .courier .c-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .courier .c-price { margin-left: auto; font-weight: 800; font-size: 15px; color: var(--ink); }
+  .courier .c-tag {
+    font-size: 10px; font-weight: 700;
+    background: var(--line); color: var(--muted);
+    padding: 2px 7px; border-radius: 999px;
+    margin-left: 4px; text-transform: uppercase; letter-spacing: .3px;
+    vertical-align: 2px;
+  }
+  .courier .c-tag.green { background: var(--accent); color: var(--green-deep); }
+  .courier .c-detail {
+    font-size: 12px; color: var(--muted); line-height: 1.5;
+    margin-top: 8px; padding-top: 10px;
+    border-top: 1px solid var(--line);
+    display: none;
+  }
+  .courier:has(input:checked) .c-detail { display: block; }
+  .courier.recommended { position: relative; }
+  .courier.recommended::after {
+    content: 'BEST VALUE';
+    position: absolute; top: -1px; right: -1px;
+    background: var(--accent); color: var(--green-deep);
+    font-size: 9.5px; font-weight: 800;
+    padding: 3px 8px;
+    border-bottom-left-radius: 10px;
+    letter-spacing: .5px;
+  }
+
   /* Cart */
   .cart-recipe-group {
     background: var(--surface);
@@ -909,12 +957,59 @@ function renderCart() {
     <div class="cart-summary">
       <div class="row"><span class="muted">Items</span><span>${total}</span></div>
       <div class="row"><span class="muted">Unique ingredients</span><span>${unique}</span></div>
-      <div class="row"><span class="muted">Estimated delivery</span><span>60 min · R 35</span></div>
-      <div class="row total"><span>Ready to Dash</span><span>${unique} items</span></div>
+      <div class="row total"><span>Ready to pick up</span><span>${unique} items</span></div>
     </div>
+
+    <div class="section-h" style="margin-top:18px"><h3>Choose your runner</h3></div>
+    <div class="couriers" id="couriers">
+      <label class="courier">
+        <input type="radio" name="courier" value="dash" checked onchange="renderCourierTotal()">
+        <div class="c-body">
+          <div class="c-head">
+            <span class="c-emoji">🛒</span>
+            <div>
+              <div class="c-name">Woolies Dash <span class="c-tag">Official</span></div>
+              <div class="c-sub">60 min · R 35 surcharge</div>
+            </div>
+            <div class="c-price">R 35</div>
+          </div>
+        </div>
+      </label>
+      <label class="courier recommended">
+        <input type="radio" name="courier" value="scoot" onchange="renderCourierTotal()">
+        <div class="c-body">
+          <div class="c-head">
+            <span class="c-emoji">🛵</span>
+            <div>
+              <div class="c-name">ScootShop <span class="c-tag green">Indie · R 15 cheaper</span></div>
+              <div class="c-sub">45 min · independent runner picks &amp; delivers</div>
+            </div>
+            <div class="c-price">R 20</div>
+          </div>
+          <div class="c-detail">
+            Runners are gig couriers. They walk your list, scan codes in-store, send photos before bagging. You pay them direct via the app — Woolies keeps the basket, the runner keeps the fee.
+          </div>
+        </div>
+      </label>
+      <label class="courier">
+        <input type="radio" name="courier" value="pickup" onchange="renderCourierTotal()">
+        <div class="c-body">
+          <div class="c-head">
+            <span class="c-emoji">🚶</span>
+            <div>
+              <div class="c-name">Click &amp; collect</div>
+              <div class="c-sub">Ready in 30 min · drive in &amp; grab</div>
+            </div>
+            <div class="c-price">Free</div>
+          </div>
+        </div>
+      </label>
+    </div>
+
     <div style="display:grid;gap:10px;margin-top:14px">
       <button class="cta-btn" onclick="checkoutDash()">
-        Continue to checkout
+        <span id="checkout-label">Continue to checkout</span>
+        <span class="price" id="checkout-fee">+ R 35</span>
       </button>
       <button class="cta-btn ghost" onclick="clearCart()">Clear cart</button>
     </div>
@@ -933,7 +1028,18 @@ function clearCart() {
   cart = []; saveCart(cart); renderCart(); toast('Cart cleared');
 }
 function checkoutDash() {
-  toast('🛒 Handing off to Dash checkout… (concept)');
+  const c = document.querySelector('input[name="courier"]:checked')?.value || 'dash';
+  const msg = {
+    dash: '🛒 Handing off to Woolies Dash… (concept)',
+    scoot: '🛵 ScootShop runner notified — walking your list now.',
+    pickup: '🚶 Order placed — ready in 30 min at your nearest Woolies.'
+  }[c];
+  toast(msg);
+}
+function renderCourierTotal() {
+  const c = document.querySelector('input[name="courier"]:checked')?.value || 'dash';
+  const fee = { dash: '+ R 35', scoot: '+ R 20', pickup: 'Free' }[c];
+  document.getElementById('checkout-fee').textContent = fee;
 }
 
 /* ============================================================
