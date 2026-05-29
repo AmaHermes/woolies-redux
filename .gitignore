@@ -1,3 +1,7 @@
 .DS_Store
 node_modules/
 *.log
+scraper/recipes.json
+scraper/discovered_ids.json
+scraper/discover.log
+scraper/extract_progress.json
