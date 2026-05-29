@@ -310,6 +310,111 @@
   .cta-btn.ghost:hover { background: var(--green-soft); }
   .cta-btn .price { margin-left: auto; opacity: .9; font-weight: 600; font-size: 13.5px; }
 
+  /* Product cards */
+  .product-list { display: grid; gap: 10px; }
+  .product-card {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .product-card .p-img {
+    width: 56px; height: 56px;
+    background: var(--green-soft);
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 28px;
+  }
+  .product-card .p-body { min-width: 0; }
+  .product-card .p-name {
+    font-size: 14px; font-weight: 700; letter-spacing: -0.1px;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .product-card .p-meta { font-size: 11.5px; color: var(--muted); margin: 2px 0 4px; }
+  .product-card .p-price { font-size: 14px; font-weight: 800; color: var(--ink); }
+  .product-card .p-add {
+    background: var(--green); color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font: inherit; font-weight: 700; font-size: 13px;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .product-card .p-add:hover { background: var(--green-deep); }
+  .p-qty {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--green-soft);
+    border-radius: 999px;
+    padding: 4px;
+  }
+  .p-qty button {
+    width: 30px; height: 30px;
+    border: none; border-radius: 50%;
+    background: var(--green); color: #fff;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .p-qty button:active { transform: scale(.9); }
+  .p-qty span { font-weight: 700; font-size: 13.5px; min-width: 20px; text-align: center; }
+  .p-qty.small button { width: 26px; height: 26px; font-size: 14px; }
+  .p-qty.small span { font-size: 13px; }
+
+  /* Aisle chips */
+  .aisle-chip {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 12px;
+    font: inherit; font-size: 13px; font-weight: 600;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .aisle-chip:hover { border-color: var(--green); background: var(--green-soft); }
+
+  /* Address cards */
+  .addr-card {
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: border-color .15s ease;
+  }
+  .addr-card.active, .addr-card:has(+ .addr-card.active) { /* no-op */ }
+  .addr-card.active { border-color: var(--green); background: var(--green-soft); }
+  .addr-card .addr-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .addr-card .addr-name { font-size: 15px; font-weight: 700; letter-spacing: -0.1px; }
+  .addr-card .addr-recipient { font-size: 12.5px; color: var(--green); font-weight: 600; margin-top: 2px; }
+  .addr-card .addr-line { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.45; white-space: pre-line; }
+  .addr-empty {
+    background: var(--surface);
+    border: 1.5px dashed var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+  }
+  .addr-empty:hover { border-color: var(--green); }
+  .link-btn {
+    background: none; border: none;
+    color: var(--green); font: inherit;
+    font-size: 12.5px; font-weight: 700;
+    cursor: pointer;
+    padding: 4px 6px;
+  }
+
   /* Courier picker */
   .couriers { display: grid; gap: 10px; }
   .courier {
@@ -606,6 +711,30 @@
     <div id="cart-content"></div>
   </main>
 
+  <!-- ADDRESS BOOK -->
+  <main class="screen hidden" id="screen-addr">
+    <div class="greet">
+      <h2>Deliver to</h2>
+      <p>Add the addresses you send orders to. Tap one to make it active.</p>
+    </div>
+    <div id="addr-list"></div>
+    <div class="form-card" style="margin-top:16px">
+      <div>
+        <label>Label</label>
+        <input id="addr-label" placeholder="e.g. Mom at Berghaven, Home, Work">
+      </div>
+      <div>
+        <label>Recipient name <span style="text-transform:none;font-weight:400">(optional)</span></label>
+        <input id="addr-recipient" placeholder="e.g. Margaret Cheese">
+      </div>
+      <div>
+        <label>Address</label>
+        <textarea id="addr-line1" required placeholder="Berghaven Retirement Village&#10;Room 14, Block B&#10;42 Sunset Drive, Cape Town"></textarea>
+      </div>
+      <button class="cta-btn" onclick="saveAddressFromForm()">Save address</button>
+    </div>
+  </main>
+
   <button class="fab" id="fab" onclick="show('add')" title="Add recipe">+</button>
 
   <nav class="tabbar">
@@ -634,6 +763,61 @@
 /* ============================================================
    SEED RECIPES — South African / Woolies-friendly favourites
    ============================================================ */
+/* ============================================================
+   SEED PRODUCTS — real Woolies items (mocked prices in ZAR)
+   ============================================================ */
+const SEED_PRODUCTS = [
+  // Frozen ready meals (the spinach & feta pie lives here)
+  { id:'p-snf-pie',     name:'Spinach & Feta Filo Pies (2-pack)', cat:'Frozen ready meals', emoji:'🥧', price:79.99, unit:'320g', tags:['spinach','feta','pie','vegetarian','filo','ready meal','easy'] },
+  { id:'p-snf-quiche',  name:'Spinach & Feta Quiche',             cat:'Frozen ready meals', emoji:'🥧', price:89.99, unit:'400g', tags:['spinach','feta','quiche','vegetarian'] },
+  { id:'p-chk-pie',     name:'Free-range Chicken & Mushroom Pie', cat:'Frozen ready meals', emoji:'🥧', price:74.99, unit:'400g', tags:['chicken','mushroom','pie','easy'] },
+  { id:'p-cot-pie',     name:'Cottage Pie (single serve)',        cat:'Frozen ready meals', emoji:'🍲', price:64.99, unit:'350g', tags:['beef','potato','single','comfort','easy'] },
+  { id:'p-fish-pie',    name:'Salmon & Prawn Fish Pie',           cat:'Frozen ready meals', emoji:'🐟', price:119.99, unit:'400g', tags:['fish','salmon','prawn','pie','easy'] },
+  { id:'p-mac-cheese',  name:'Macaroni & Cheese Bake',            cat:'Frozen ready meals', emoji:'🧀', price:69.99, unit:'400g', tags:['pasta','cheese','comfort','easy'] },
+  { id:'p-lasagne',     name:'Beef Lasagne',                      cat:'Frozen ready meals', emoji:'🍝', price:84.99, unit:'400g', tags:['pasta','beef','italian','easy'] },
+
+  // Soups (good for retirement home — soft, warm, easy to eat)
+  { id:'p-soup-tom',    name:'Roasted Tomato Soup',               cat:'Soups', emoji:'🍅', price:39.99, unit:'500ml', tags:['soup','tomato','warm','soft'] },
+  { id:'p-soup-but',    name:'Butternut Soup',                    cat:'Soups', emoji:'🎃', price:39.99, unit:'500ml', tags:['soup','butternut','warm','soft'] },
+  { id:'p-soup-chk',    name:'Chicken Noodle Soup',               cat:'Soups', emoji:'🍜', price:44.99, unit:'500ml', tags:['soup','chicken','warm','soft','comfort'] },
+
+  // Bakery
+  { id:'p-bread-seed',  name:'Seed Loaf',                         cat:'Bakery', emoji:'🍞', price:34.99, unit:'700g', tags:['bread','seed','wholewheat'] },
+  { id:'p-rolls',       name:'Soft White Rolls (6-pack)',         cat:'Bakery', emoji:'🥖', price:24.99, unit:'6 pack', tags:['bread','rolls','soft'] },
+  { id:'p-croissant',   name:'All-butter Croissants (4-pack)',    cat:'Bakery', emoji:'🥐', price:54.99, unit:'4 pack', tags:['breakfast','french','butter'] },
+  { id:'p-rusks',       name:'Buttermilk Rusks',                  cat:'Bakery', emoji:'🍪', price:64.99, unit:'500g', tags:['rusks','breakfast','tea','south african'] },
+
+  // Cheese & deli
+  { id:'p-feta',        name:'Danish Feta',                       cat:'Cheese', emoji:'🧀', price:64.99, unit:'200g', tags:['feta','cheese','greek'] },
+  { id:'p-cheddar',     name:'Mature Cheddar',                    cat:'Cheese', emoji:'🧀', price:89.99, unit:'250g', tags:['cheese','cheddar'] },
+  { id:'p-mozza',       name:'Buffalo Mozzarella',                cat:'Cheese', emoji:'🧀', price:74.99, unit:'125g', tags:['cheese','mozzarella','italian'] },
+  { id:'p-burrata',     name:'Burrata',                           cat:'Cheese', emoji:'🧀', price:99.99, unit:'125g', tags:['cheese','burrata','italian'] },
+
+  // Fresh produce
+  { id:'p-spinach',     name:'Baby Spinach',                      cat:'Fresh produce', emoji:'🥬', price:29.99, unit:'200g', tags:['spinach','greens','vegetable','salad'] },
+  { id:'p-tomato',      name:'Rosa Tomatoes',                     cat:'Fresh produce', emoji:'🍅', price:34.99, unit:'250g', tags:['tomato','salad','vegetable'] },
+  { id:'p-avo',         name:'Ripe Avocados (3-pack)',            cat:'Fresh produce', emoji:'🥑', price:54.99, unit:'3 pack', tags:['avocado','vegetable'] },
+  { id:'p-bananas',     name:'Bananas',                           cat:'Fresh produce', emoji:'🍌', price:24.99, unit:'1 kg', tags:['fruit','banana','breakfast'] },
+  { id:'p-berries',     name:'Mixed Berries',                     cat:'Fresh produce', emoji:'🫐', price:79.99, unit:'250g', tags:['berries','fruit','blueberry','strawberry'] },
+
+  // Dairy & eggs
+  { id:'p-milk',        name:'Full Cream Milk',                   cat:'Dairy', emoji:'🥛', price:24.99, unit:'2L', tags:['milk','dairy'] },
+  { id:'p-eggs',        name:'Free-range Eggs (6)',               cat:'Dairy', emoji:'🥚', price:54.99, unit:'6 large', tags:['eggs','breakfast'] },
+  { id:'p-yogurt',      name:'Greek Yogurt',                      cat:'Dairy', emoji:'🥛', price:44.99, unit:'500g', tags:['yogurt','greek','breakfast','dairy'] },
+  { id:'p-butter',      name:'Salted Butter',                     cat:'Dairy', emoji:'🧈', price:64.99, unit:'500g', tags:['butter','dairy','baking'] },
+
+  // Pantry
+  { id:'p-pasta',       name:'Penne Pasta',                       cat:'Pantry', emoji:'🍝', price:24.99, unit:'500g', tags:['pasta','penne'] },
+  { id:'p-rice',        name:'Basmati Rice',                      cat:'Pantry', emoji:'🍚', price:64.99, unit:'1 kg', tags:['rice','basmati','indian'] },
+  { id:'p-olive-oil',   name:'Extra Virgin Olive Oil',            cat:'Pantry', emoji:'🫒', price:139.99, unit:'500ml', tags:['olive oil','oil','italian'] },
+  { id:'p-tomato-tin',  name:'Tinned Chopped Tomatoes',           cat:'Pantry', emoji:'🥫', price:18.99, unit:'400g', tags:['tomato','tinned','pantry'] },
+
+  // Sweet treats — good for a care home
+  { id:'p-choc',        name:'Belgian Chocolate Slab',            cat:'Sweets', emoji:'🍫', price:64.99, unit:'150g', tags:['chocolate','sweet','treat','belgian'] },
+  { id:'p-biscuits',    name:'Shortbread Biscuits',               cat:'Sweets', emoji:'🍪', price:44.99, unit:'200g', tags:['biscuits','shortbread','tea','sweet'] },
+  { id:'p-cake-carrot', name:'Carrot Cake Slice',                 cat:'Sweets', emoji:'🍰', price:34.99, unit:'120g', tags:['cake','carrot','dessert','sweet'] },
+];
+
 const SEED_RECIPES = [
   { id:'bobotie', name:'Bobotie', emoji:'🍲', time:'1 hr 10 min', tags:['comfort','classic','family'], skip:[],
     ingredients:[
@@ -699,6 +883,8 @@ const SEED_RECIPES = [
    ============================================================ */
 const STORE_RECIPES = 'wc.recipes.v1';
 const STORE_CART = 'wc.cart.v1';
+const STORE_LOOSE = 'wc.loose.v1';
+const STORE_ADDR = 'wc.addr.v1';
 
 function loadRecipes() {
   const raw = localStorage.getItem(STORE_RECIPES);
@@ -711,6 +897,58 @@ function loadCart() {
   try { return JSON.parse(localStorage.getItem(STORE_CART) || '[]'); } catch { return []; }
 }
 function saveCart(c) { localStorage.setItem(STORE_CART, JSON.stringify(c)); }
+
+/* Loose items (products added directly, not from recipes) */
+function loadLooseCart() { try { return JSON.parse(localStorage.getItem(STORE_LOOSE) || '[]'); } catch { return []; } }
+function saveLooseCart(c) { localStorage.setItem(STORE_LOOSE, JSON.stringify(c)); }
+function addLoose(productId) {
+  const p = SEED_PRODUCTS.find(x => x.id === productId);
+  if (!p) return;
+  const loose = loadLooseCart();
+  const ex = loose.find(x => x.id === productId);
+  if (ex) ex.qty += 1; else loose.push({ id: productId, qty: 1 });
+  saveLooseCart(loose);
+  toast(`✓ ${p.name} added`);
+  updateCartCount();
+  runSearch();
+}
+function changeLoose(productId, delta) {
+  let loose = loadLooseCart();
+  const ex = loose.find(x => x.id === productId);
+  if (!ex) return;
+  ex.qty += delta;
+  if (ex.qty <= 0) loose = loose.filter(x => x.id !== productId);
+  saveLooseCart(loose);
+  updateCartCount();
+  // re-render whichever screen is visible
+  if (!document.getElementById('screen-search').classList.contains('hidden')) runSearch();
+  if (!document.getElementById('screen-cart').classList.contains('hidden')) renderCart();
+}
+
+/* Address book */
+function loadAddresses() {
+  try { return JSON.parse(localStorage.getItem(STORE_ADDR) || '[]'); } catch { return []; }
+}
+function saveAddresses(a) { localStorage.setItem(STORE_ADDR, JSON.stringify(a)); }
+function getActiveAddress() {
+  const all = loadAddresses();
+  return all.find(a => a.active) || all[0] || null;
+}
+function setActiveAddress(id) {
+  const all = loadAddresses().map(a => ({ ...a, active: a.id === id }));
+  saveAddresses(all);
+}
+function addAddress(label, line1, recipient) {
+  const all = loadAddresses().map(a => ({ ...a, active: false }));
+  all.push({ id: 'a-' + Date.now().toString(36), label, line1, recipient, active: true });
+  saveAddresses(all);
+}
+function removeAddress(id) {
+  const all = loadAddresses().filter(a => a.id !== id);
+  if (all.length && !all.find(a=>a.active)) all[0].active = true;
+  saveAddresses(all);
+  renderCart();
+}
 
 let recipes = loadRecipes();
 let cart = loadCart(); // [{recipeId, items: [{name, qty}]}]
@@ -726,14 +964,51 @@ function show(name) {
   document.querySelectorAll('.tab').forEach(t => {
     t.classList.toggle('active', t.dataset.tab === name || (name === 'add' && t.dataset.tab === 'cookbook'));
   });
-  // hide FAB on detail/add/cart screens
-  document.getElementById('fab').style.display = ['add','detail','cart'].includes(name) ? 'none' : 'grid';
+  // hide FAB on detail/add/cart/addr screens
+  document.getElementById('fab').style.display = ['add','detail','cart','addr'].includes(name) ? 'none' : 'grid';
   // scroll top
   target?.scrollTo(0, 0);
   if (name === 'home') renderHome();
   if (name === 'cookbook') renderCookbook();
   if (name === 'cart') renderCart();
   if (name === 'search') runSearch();
+  if (name === 'addr') renderAddrScreen();
+}
+
+function renderAddrScreen() {
+  const all = loadAddresses();
+  const el = document.getElementById('addr-list');
+  if (all.length === 0) {
+    el.innerHTML = `<p style="color:var(--muted);font-size:13.5px;margin:4px 4px 8px">No saved addresses yet — add one below 👇</p>`;
+    return;
+  }
+  el.innerHTML = all.map(a => `
+    <div class="addr-card ${a.active?'active':''}" onclick="setActiveAddress('${a.id}');renderAddrScreen()">
+      <div class="addr-head">
+        <span style="font-size:11px;font-weight:700;color:${a.active?'var(--green)':'var(--muted)'};letter-spacing:.4px">
+          ${a.active?'✓ ACTIVE':'TAP TO SELECT'}
+        </span>
+        <button class="link-btn" onclick="event.stopPropagation();removeAddress('${a.id}')">Remove</button>
+      </div>
+      <div class="addr-name">${escapeHTML(a.label)}</div>
+      ${a.recipient ? `<div class="addr-recipient">For ${escapeHTML(a.recipient)}</div>` : ''}
+      <div class="addr-line">${escapeHTML(a.line1)}</div>
+    </div>
+  `).join('');
+}
+
+function saveAddressFromForm() {
+  const label = document.getElementById('addr-label').value.trim();
+  const recipient = document.getElementById('addr-recipient').value.trim();
+  const line1 = document.getElementById('addr-line1').value.trim();
+  if (!label || !line1) { toast('⚠️ Need at least a label and address'); return; }
+  addAddress(label, line1, recipient);
+  document.getElementById('addr-label').value = '';
+  document.getElementById('addr-recipient').value = '';
+  document.getElementById('addr-line1').value = '';
+  toast(`✓ ${label} saved`);
+  renderAddrScreen();
+  setTimeout(() => show('cart'), 700);
 }
 
 /* ============================================================
@@ -849,16 +1124,37 @@ function runSearch() {
     results.innerHTML = `
       <div class="section-h"><h3>Popular searches</h3></div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 4px">
-        ${['chicken','curry','pasta','quick','vegetarian','braai','weeknight']
+        ${['spinach and feta pie','soup','bread','cheese','chocolate','milk','chicken','pasta']
           .map(t => `<button class="tag" style="border:none;cursor:pointer;padding:8px 14px;font-size:13px"
                             onclick="document.getElementById('q').value='${t}';runSearch()">${t}</button>`).join('')}
       </div>
-      <div class="section-h" style="margin-top:24px"><h3>All recipes</h3></div>
-      <div class="recipe-list">${recipes.map(r => recipeCardHTML(r)).join('')}</div>
+      <div class="section-h" style="margin-top:24px"><h3>Browse aisles</h3></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${[...new Set(SEED_PRODUCTS.map(p=>p.cat))].map(c => `
+          <button class="aisle-chip" onclick="document.getElementById('q').value='${escapeAttr(c)}';runSearch()">
+            ${escapeHTML(c)}
+          </button>`).join('')}
+      </div>
     `;
     return;
   }
-  const matches = recipes.map(r => {
+
+  // PRODUCTS — fuzzy match across name, category, tags
+  const productMatches = SEED_PRODUCTS.map(p => {
+    const hay = [p.name, p.cat, ...(p.tags||[])].join(' ').toLowerCase();
+    let score = 0;
+    if (p.name.toLowerCase().includes(q)) score += 12;
+    if (p.cat.toLowerCase().includes(q)) score += 4;
+    if ((p.tags||[]).some(t => t.includes(q))) score += 6;
+    // word-by-word for multi-word queries like "spinach and feta"
+    const words = q.split(/\s+/).filter(w => w.length>2 && w!=='and' && w!=='the' && w!=='for');
+    const hits = words.filter(w => hay.includes(w));
+    score += hits.length * 3;
+    return { p, score };
+  }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
+
+  // RECIPES — same as before
+  const recipeMatches = recipes.map(r => {
     const hay = [r.name, ...(r.tags||[]), ...r.ingredients].join(' ').toLowerCase();
     let score = 0;
     if (r.name.toLowerCase().includes(q)) score += 10;
@@ -869,18 +1165,24 @@ function runSearch() {
     return { r, score, ingHits };
   }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
 
-  if (matches.length === 0) {
-    results.innerHTML = emptyHTML(`No matches for "${escapeHTML(q)}"`, 'Try searching by ingredient like "chicken" or "tomato".');
+  if (productMatches.length === 0 && recipeMatches.length === 0) {
+    results.innerHTML = emptyHTML(`No matches for "${escapeHTML(q)}"`, 'Try a product name like "spinach and feta pie" or an ingredient like "chicken".');
     return;
   }
-  results.innerHTML = `
-    <p style="font-size:12.5px;color:var(--muted);margin:4px 4px 12px">
-      ${matches.length} recipe${matches.length===1?'':'s'} matched.
-    </p>
+
+  const productHTML = productMatches.length ? `
+    <div class="section-h"><h3>Products (${productMatches.length})</h3></div>
+    <div class="product-list">
+      ${productMatches.slice(0, 20).map(m => productCardHTML(m.p)).join('')}
+    </div>
+  ` : '';
+
+  const recipeHTML = recipeMatches.length ? `
+    <div class="section-h" style="margin-top:18px"><h3>Recipes (${recipeMatches.length})</h3></div>
     <div class="recipe-list">
-      ${matches.map(m => {
+      ${recipeMatches.map(m => {
         const hint = m.ingHits.length && !m.r.name.toLowerCase().includes(q)
-          ? `<div style="font-size:11.5px;color:var(--green);margin-top:4px;font-weight:600">Contains: ${m.ingHits.slice(0,2).map(escapeHTML).join(', ')}${m.ingHits.length>2?'…':''}</div>`
+          ? `<div style="font-size:11.5px;color:var(--green);margin-top:4px;font-weight:600">Uses: ${m.ingHits.slice(0,2).map(escapeHTML).join(', ')}${m.ingHits.length>2?'…':''}</div>`
           : '';
         return `
         <article class="recipe-card" onclick="openRecipe('${m.r.id}')">
@@ -892,7 +1194,33 @@ function runSearch() {
           </div>
         </article>`;
       }).join('')}
-    </div>`;
+    </div>
+  ` : '';
+
+  results.innerHTML = productHTML + recipeHTML;
+}
+
+function productCardHTML(p) {
+  const inCart = (loadLooseCart().find(x => x.id === p.id)?.qty || 0);
+  return `
+    <div class="product-card">
+      <div class="p-img">${p.emoji}</div>
+      <div class="p-body">
+        <div class="p-name">${escapeHTML(p.name)}</div>
+        <div class="p-meta"><span>${escapeHTML(p.unit)}</span> · <span>${escapeHTML(p.cat)}</span></div>
+        <div class="p-price">R ${p.price.toFixed(2)}</div>
+      </div>
+      ${inCart > 0 ? `
+        <div class="p-qty">
+          <button onclick="changeLoose('${p.id}', -1)">−</button>
+          <span>${inCart}</span>
+          <button onclick="changeLoose('${p.id}', 1)">+</button>
+        </div>
+      ` : `
+        <button class="p-add" onclick="addLoose('${p.id}')">Add</button>
+      `}
+    </div>
+  `;
 }
 function clearSearch() { document.getElementById('q').value = ''; runSearch(); }
 
@@ -900,14 +1228,16 @@ function clearSearch() { document.getElementById('q').value = ''; runSearch(); }
    CART
    ============================================================ */
 function updateCartCount() {
-  const n = cart.reduce((s, g) => s + g.items.length, 0);
-  document.getElementById('cart-count').textContent = n;
+  const recipeItems = cart.reduce((s, g) => s + g.items.length, 0);
+  const looseItems = loadLooseCart().reduce((s, x) => s + x.qty, 0);
+  document.getElementById('cart-count').textContent = recipeItems + looseItems;
 }
 
 function renderCart() {
   const el = document.getElementById('cart-content');
-  if (cart.length === 0) {
-    el.innerHTML = emptyHTML('Your cart is empty', 'Open a recipe and tap "Add ingredients to Dash".');
+  const loose = loadLooseCart();
+  if (cart.length === 0 && loose.length === 0) {
+    el.innerHTML = renderAddressBlock() + emptyHTML('Your cart is empty', 'Search for products or open a recipe to start.');
     document.getElementById('cart-sub').textContent = '';
     updateCartCount();
     return;
@@ -923,10 +1253,44 @@ function renderCart() {
     });
   });
 
-  const total = cart.reduce((s, g) => s + g.items.length, 0);
-  const unique = agg.size;
+  const recipeItems = cart.reduce((s, g) => s + g.items.length, 0);
+  const looseItems = loose.reduce((s, x) => s + x.qty, 0);
+  const total = recipeItems + looseItems;
+  const looseSubtotal = loose.reduce((s, x) => {
+    const p = SEED_PRODUCTS.find(pp => pp.id === x.id);
+    return s + (p ? p.price * x.qty : 0);
+  }, 0);
+
   document.getElementById('cart-sub').textContent =
-    `${total} items across ${cart.length} recipe${cart.length===1?'':'s'} · ${unique} unique`;
+    `${total} item${total===1?'':'s'} · ${cart.length} recipe${cart.length===1?'':'s'} + ${loose.length} loose`;
+
+  // Loose products section
+  const looseHTML = loose.length ? `
+    <div class="cart-recipe-group">
+      <div class="group-h">
+        <span class="emoji">🛒</span>
+        <div class="info">
+          <h4>Direct from shelf</h4>
+          <div class="sub">${loose.length} product${loose.length===1?'':'s'} · R ${looseSubtotal.toFixed(2)}</div>
+        </div>
+      </div>
+      ${loose.map(x => {
+        const p = SEED_PRODUCTS.find(pp => pp.id === x.id);
+        if (!p) return '';
+        return `
+        <div class="cart-item">
+          <span style="font-size:18px;margin-right:4px">${p.emoji}</span>
+          <div class="name">${escapeHTML(p.name)}<div style="font-size:11.5px;color:var(--muted);font-weight:400">${escapeHTML(p.unit)}</div></div>
+          <div class="p-qty small">
+            <button onclick="changeLoose('${p.id}', -1)">−</button>
+            <span>${x.qty}</span>
+            <button onclick="changeLoose('${p.id}', 1)">+</button>
+          </div>
+          <div style="font-weight:700;font-size:13.5px;margin-left:10px;min-width:60px;text-align:right">R ${(p.price*x.qty).toFixed(2)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  ` : '';
 
   // Per-recipe groups
   const groups = cart.map(g => {
@@ -953,11 +1317,13 @@ function renderCart() {
   }).join('');
 
   el.innerHTML = `
+    ${renderAddressBlock()}
+    ${looseHTML}
     ${groups}
     <div class="cart-summary">
-      <div class="row"><span class="muted">Items</span><span>${total}</span></div>
-      <div class="row"><span class="muted">Unique ingredients</span><span>${unique}</span></div>
-      <div class="row total"><span>Ready to pick up</span><span>${unique} items</span></div>
+      <div class="row"><span class="muted">Products subtotal</span><span>R ${looseSubtotal.toFixed(2)}</span></div>
+      <div class="row"><span class="muted">Recipe ingredient items</span><span>${recipeItems}</span></div>
+      <div class="row total"><span>Items in basket</span><span>${total}</span></div>
     </div>
 
     <div class="section-h" style="margin-top:18px"><h3>Choose your runner</h3></div>
@@ -987,7 +1353,7 @@ function renderCart() {
             <div class="c-price">R 20</div>
           </div>
           <div class="c-detail">
-            Runners are gig couriers. They walk your list, scan codes in-store, send photos before bagging. You pay them direct via the app — Woolies keeps the basket, the runner keeps the fee.
+            Runner walks your list, scans codes, sends photos before bagging. Pay direct. Perfect for sending to family — they'll call the recipient to confirm drop-off.
           </div>
         </div>
       </label>
@@ -1008,13 +1374,39 @@ function renderCart() {
 
     <div style="display:grid;gap:10px;margin-top:14px">
       <button class="cta-btn" onclick="checkoutDash()">
-        <span id="checkout-label">Continue to checkout</span>
+        <span id="checkout-label">Place order</span>
         <span class="price" id="checkout-fee">+ R 35</span>
       </button>
       <button class="cta-btn ghost" onclick="clearCart()">Clear cart</button>
     </div>
   `;
   updateCartCount();
+}
+
+function renderAddressBlock() {
+  const addrs = loadAddresses();
+  const active = getActiveAddress();
+  if (addrs.length === 0) {
+    return `
+      <div class="addr-empty" onclick="show('addr')">
+        <div>
+          <div style="font-weight:700;font-size:14px">📍 Deliver to…</div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:2px">Add an address to send to yourself, family, or the retirement home.</div>
+        </div>
+        <button class="cta-btn" style="padding:9px 14px;width:auto;font-size:13px">Add address</button>
+      </div>`;
+  }
+  return `
+    <div class="addr-card">
+      <div class="addr-head">
+        <span style="font-size:11px;font-weight:700;color:var(--green);letter-spacing:.4px">DELIVERING TO</span>
+        <button class="link-btn" onclick="show('addr')">Change</button>
+      </div>
+      <div class="addr-name">${escapeHTML(active.label)}</div>
+      ${active.recipient ? `<div class="addr-recipient">For ${escapeHTML(active.recipient)}</div>` : ''}
+      <div class="addr-line">${escapeHTML(active.line1)}</div>
+    </div>
+  `;
 }
 
 function removeRecipeFromCart(id) {
@@ -1024,15 +1416,20 @@ function removeRecipeFromCart(id) {
   toast('Removed from cart');
 }
 function clearCart() {
-  if (cart.length === 0) return;
-  cart = []; saveCart(cart); renderCart(); toast('Cart cleared');
+  if (cart.length === 0 && loadLooseCart().length === 0) return;
+  cart = []; saveCart(cart);
+  saveLooseCart([]);
+  renderCart(); toast('Cart cleared');
 }
 function checkoutDash() {
   const c = document.querySelector('input[name="courier"]:checked')?.value || 'dash';
+  const addr = getActiveAddress();
+  if (!addr) { toast('⚠️ Add a delivery address first'); show('addr'); return; }
+  const recipient = addr.recipient ? ` for ${addr.recipient}` : '';
   const msg = {
-    dash: '🛒 Handing off to Woolies Dash… (concept)',
-    scoot: '🛵 ScootShop runner notified — walking your list now.',
-    pickup: '🚶 Order placed — ready in 30 min at your nearest Woolies.'
+    dash: `🛒 Order placed${recipient} · ${addr.label}`,
+    scoot: `🛵 ScootShop runner dispatched${recipient} · ${addr.label}`,
+    pickup: `🚶 Ready in 30 min at your nearest Woolies`
   }[c];
   toast(msg);
 }
