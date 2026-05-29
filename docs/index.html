@@ -4,1479 +4,161 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#00573F" />
-<title>Woolies Dash · Cookbook</title>
+<meta name="robots" content="noindex,nofollow" />
+<title>Woolies Redux</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --green: #00573F;
-    --green-deep: #003A29;
-    --green-soft: #E8F1ED;
-    --ink: #0E1A14;
-    --muted: #6B7A72;
-    --line: #E4E9E6;
-    --surface: #FFFFFF;
-    --bg: #F5F6F4;
-    --accent: #F7B500;       /* Woolies-ish gold */
-    --danger: #C8341F;
-    --radius: 18px;
-    --shadow-sm: 0 1px 2px rgba(14,26,20,.04), 0 2px 8px rgba(14,26,20,.04);
-    --shadow-md: 0 4px 14px rgba(14,26,20,.08);
-  }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; height: 100%; }
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    color: var(--ink);
-    background: #1a1a1a;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    background: linear-gradient(160deg, #00573F 0%, #003A29 60%, #001A12 100%);
+    color: #fff;
     min-height: 100vh;
     display: grid;
     place-items: center;
-    padding: 20px 0;
+    padding: 24px;
   }
-
-  /* Mobile frame on desktop, full-screen on phones */
-  .phone {
+  .card {
     width: 100%;
-    max-width: 420px;
-    height: min(900px, 100vh);
-    background: var(--bg);
-    border-radius: 36px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 30px 80px rgba(0,0,0,.5);
-    display: flex;
-    flex-direction: column;
+    max-width: 380px;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 36px 28px 28px;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
   }
-  @media (max-width: 480px) {
-    body { padding: 0; background: var(--bg); }
-    .phone { border-radius: 0; height: 100vh; max-width: 100%; box-shadow: none; }
-  }
-
-  /* Top app bar */
-  .appbar {
-    background: var(--green);
-    color: #fff;
-    padding: 14px 18px 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: sticky; top: 0; z-index: 10;
-  }
-  .appbar .logo {
-    width: 30px; height: 30px;
-    background: var(--accent);
+  .logo {
+    width: 64px; height: 64px;
+    background: #F7B500;
+    color: #003A29;
     border-radius: 50%;
     display: grid; place-items: center;
-    color: var(--green-deep);
-    font-weight: 800;
-    font-size: 14px;
-    letter-spacing: -0.5px;
+    font-weight: 800; font-size: 28px;
+    margin: 0 auto 18px;
+    letter-spacing: -1px;
+    box-shadow: 0 8px 20px rgba(247,181,0,0.3);
   }
-  .appbar h1 {
-    font-size: 16px; font-weight: 700; margin: 0;
-    letter-spacing: -0.2px;
+  h1 {
+    font-size: 22px; font-weight: 800; margin: 0 0 4px;
+    letter-spacing: -0.4px;
   }
-  .appbar h1 .sub { display: block; font-size: 11px; font-weight: 500; opacity: .8; letter-spacing: .4px; text-transform: uppercase; }
-  .cart-pill {
-    margin-left: auto;
-    background: rgba(255,255,255,.14);
-    border: 1px solid rgba(255,255,255,.18);
-    padding: 7px 12px;
-    border-radius: 999px;
-    font-size: 13px; font-weight: 600;
-    color: #fff;
-    display: flex; align-items: center; gap: 6px;
-    cursor: pointer;
-    transition: background .15s ease;
-  }
-  .cart-pill:hover { background: rgba(255,255,255,.22); }
-  .cart-pill .dot {
-    background: var(--accent); color: var(--green-deep);
-    border-radius: 999px;
-    padding: 1px 7px;
-    font-size: 11px; font-weight: 800;
-    min-width: 18px; text-align: center;
-  }
-
-  /* Scrollable content area */
-  .screen {
-    flex: 1;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 16px 16px 100px;
-  }
-  .screen.hidden { display: none; }
-
-  /* Greeting */
-  .greet {
-    margin: 4px 4px 16px;
-  }
-  .greet h2 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.6px; }
-  .greet p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
-
-  /* Search bar */
-  .search-wrap {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 12px 14px;
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 18px;
-    box-shadow: var(--shadow-sm);
-  }
-  .search-wrap svg { flex-shrink: 0; color: var(--muted); }
-  .search-wrap input {
-    flex: 1; border: none; outline: none; background: transparent;
-    font: inherit; color: var(--ink);
-    font-size: 14.5px;
-  }
-  .search-wrap input::placeholder { color: var(--muted); }
-  .search-wrap .clear {
-    border: none; background: transparent; color: var(--muted);
-    cursor: pointer; padding: 2px 4px; font-size: 18px;
-    display: none;
-  }
-  .search-wrap.has-value .clear { display: block; }
-
-  /* Section header */
-  .section-h {
-    display: flex; align-items: baseline; justify-content: space-between;
-    margin: 18px 4px 10px;
-  }
-  .section-h h3 { font-size: 14px; font-weight: 700; margin: 0; letter-spacing: -0.1px; }
-  .section-h .link { font-size: 12px; color: var(--green); font-weight: 600; cursor: pointer; }
-
-  /* Recipe cards (carousel on home) */
-  .h-scroll {
-    display: flex; gap: 12px;
-    overflow-x: auto;
-    padding: 4px 4px 12px;
-    margin: 0 -16px;
-    padding-left: 16px; padding-right: 16px;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-  .h-scroll::-webkit-scrollbar { display: none; }
-  .recipe-card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform .15s ease, box-shadow .15s ease;
-    border: 1px solid var(--line);
-  }
-  .recipe-card:active { transform: scale(.98); }
-  .h-scroll .recipe-card {
-    flex: 0 0 220px;
-    scroll-snap-align: start;
-  }
-  .recipe-card .img {
-    height: 130px;
-    background: linear-gradient(135deg, var(--green-soft), #d8e8e1);
-    position: relative;
-    display: grid; place-items: center;
-    font-size: 48px;
-  }
-  .recipe-card .img .badge {
-    position: absolute; top: 10px; left: 10px;
-    background: rgba(255,255,255,.92);
-    color: var(--green-deep);
-    font-size: 10px; font-weight: 700;
-    padding: 4px 8px; border-radius: 6px;
-    letter-spacing: .3px; text-transform: uppercase;
-  }
-  .recipe-card .body { padding: 12px 14px 14px; }
-  .recipe-card .body h4 { margin: 0 0 4px; font-size: 14.5px; font-weight: 700; letter-spacing: -0.2px; }
-  .recipe-card .body .meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; }
-  .recipe-card .body .meta span { display: flex; align-items: center; gap: 4px; }
-
-  /* Recipe list (vertical) */
-  .recipe-list { display: grid; gap: 12px; }
-  .recipe-list .recipe-card { display: grid; grid-template-columns: 96px 1fr; }
-  .recipe-list .recipe-card .img { height: 100%; min-height: 96px; font-size: 36px; }
-  .recipe-list .recipe-card .body { padding: 12px 14px; display: flex; flex-direction: column; justify-content: center; }
-
-  /* Empty state */
-  .empty {
-    text-align: center; padding: 40px 20px;
-    color: var(--muted);
-  }
-  .empty .icon { font-size: 44px; margin-bottom: 8px; }
-  .empty h4 { margin: 0 0 6px; color: var(--ink); font-size: 16px; }
-  .empty p { margin: 0; font-size: 13.5px; line-height: 1.5; }
-
-  /* Recipe detail */
-  .detail-hero {
-    margin: -16px -16px 0;
-    height: 200px;
-    background: linear-gradient(135deg, var(--green-soft), #c9ddd2);
-    position: relative;
-    display: grid; place-items: center;
-    font-size: 80px;
-  }
-  .back-btn {
-    position: absolute; top: 12px; left: 12px;
-    width: 38px; height: 38px;
-    background: rgba(255,255,255,.92);
-    border-radius: 999px;
-    border: none;
-    display: grid; place-items: center;
-    cursor: pointer;
-    box-shadow: var(--shadow-sm);
-  }
-  .detail-meta { padding: 18px 4px 8px; }
-  .detail-meta h2 { margin: 0 0 6px; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-  .detail-meta .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
   .tag {
     font-size: 11px; font-weight: 600;
-    background: var(--green-soft); color: var(--green-deep);
-    padding: 4px 9px; border-radius: 999px;
-    letter-spacing: .2px;
+    color: #F7B500;
+    text-transform: uppercase; letter-spacing: 1.6px;
+    margin-bottom: 22px;
   }
-  .detail-meta .meta { color: var(--muted); font-size: 13px; display: flex; gap: 14px; }
-
-  .ingredients {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-top: 16px;
+  p {
+    font-size: 13.5px; line-height: 1.55;
+    color: rgba(255,255,255,0.7);
+    margin: 0 0 22px;
   }
-  .ingredients .header {
-    padding: 14px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid var(--line);
+  .input-wrap {
+    display: flex; gap: 8px;
+    margin-bottom: 12px;
   }
-  .ingredients .header h3 { margin: 0; font-size: 14px; font-weight: 700; }
-  .ingredients .header .count { font-size: 12px; color: var(--muted); }
-  .ingredient {
-    padding: 12px 16px;
-    display: flex; align-items: center; gap: 12px;
-    border-bottom: 1px solid var(--line);
-    cursor: pointer;
-  }
-  .ingredient:last-child { border-bottom: none; }
-  .ingredient .check {
-    width: 22px; height: 22px;
-    border-radius: 6px;
-    border: 1.5px solid var(--line);
-    display: grid; place-items: center;
-    flex-shrink: 0;
-    background: var(--bg);
-    color: transparent;
-    font-size: 14px;
-    font-weight: 800;
-    transition: all .12s ease;
-  }
-  .ingredient.skip .check {
-    background: var(--green); border-color: var(--green); color: #fff;
-  }
-  .ingredient.skip .name { text-decoration: line-through; color: var(--muted); }
-  .ingredient .name { flex: 1; font-size: 14.5px; }
-  .ingredient .qty { font-size: 12.5px; color: var(--muted); }
-
-  /* Bottom CTA bar */
-  .cta-bar {
-    position: absolute; left: 0; right: 0; bottom: 64px;
-    padding: 12px 16px;
-    background: linear-gradient(to top, var(--bg) 75%, rgba(245,246,244,0));
-  }
-  .cta-btn {
-    width: 100%;
-    background: var(--green);
-    color: #fff;
-    border: none;
-    padding: 15px;
-    border-radius: 14px;
-    font: inherit;
-    font-weight: 700;
-    font-size: 15px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    box-shadow: 0 6px 16px rgba(0,87,63,.25);
-    transition: transform .1s ease, background .15s ease;
-  }
-  .cta-btn:active { transform: scale(.98); }
-  .cta-btn:hover { background: var(--green-deep); }
-  .cta-btn.ghost {
-    background: transparent;
-    color: var(--green);
-    border: 1.5px solid var(--green);
-    box-shadow: none;
-  }
-  .cta-btn.ghost:hover { background: var(--green-soft); }
-  .cta-btn .price { margin-left: auto; opacity: .9; font-weight: 600; font-size: 13.5px; }
-
-  /* Product cards */
-  .product-list { display: grid; gap: 10px; }
-  .product-card {
-    display: grid;
-    grid-template-columns: 56px 1fr auto;
-    gap: 12px;
-    align-items: center;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 12px;
-    box-shadow: var(--shadow-sm);
-  }
-  .product-card .p-img {
-    width: 56px; height: 56px;
-    background: var(--green-soft);
-    border-radius: 10px;
-    display: grid; place-items: center;
-    font-size: 28px;
-  }
-  .product-card .p-body { min-width: 0; }
-  .product-card .p-name {
-    font-size: 14px; font-weight: 700; letter-spacing: -0.1px;
-    overflow: hidden; text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .product-card .p-meta { font-size: 11.5px; color: var(--muted); margin: 2px 0 4px; }
-  .product-card .p-price { font-size: 14px; font-weight: 800; color: var(--ink); }
-  .product-card .p-add {
-    background: var(--green); color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font: inherit; font-weight: 700; font-size: 13px;
-    cursor: pointer;
-    transition: background .15s ease;
-  }
-  .product-card .p-add:hover { background: var(--green-deep); }
-  .p-qty {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--green-soft);
-    border-radius: 999px;
-    padding: 4px;
-  }
-  .p-qty button {
-    width: 30px; height: 30px;
-    border: none; border-radius: 50%;
-    background: var(--green); color: #fff;
-    font-size: 16px; font-weight: 700;
-    cursor: pointer;
-    display: grid; place-items: center;
-  }
-  .p-qty button:active { transform: scale(.9); }
-  .p-qty span { font-weight: 700; font-size: 13.5px; min-width: 20px; text-align: center; }
-  .p-qty.small button { width: 26px; height: 26px; font-size: 14px; }
-  .p-qty.small span { font-size: 13px; }
-
-  /* Aisle chips */
-  .aisle-chip {
-    background: var(--surface);
-    border: 1px solid var(--line);
+  input {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 12px;
-    padding: 14px 12px;
-    font: inherit; font-size: 13px; font-weight: 600;
-    color: var(--ink);
-    text-align: left;
-    cursor: pointer;
+    padding: 13px 14px;
+    font: inherit; font-size: 15px;
+    color: #fff;
+    outline: none;
     transition: border-color .15s ease, background .15s ease;
   }
-  .aisle-chip:hover { border-color: var(--green); background: var(--green-soft); }
-
-  /* Address cards */
-  .addr-card {
-    background: var(--surface);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-bottom: 12px;
+  input:focus {
+    border-color: #F7B500;
+    background: rgba(255,255,255,0.12);
+  }
+  input::placeholder { color: rgba(255,255,255,0.4); }
+  button {
+    background: #F7B500;
+    color: #003A29;
+    border: none;
+    border-radius: 12px;
+    padding: 13px 22px;
+    font: inherit; font-weight: 700; font-size: 14px;
     cursor: pointer;
-    transition: border-color .15s ease;
+    transition: transform .1s ease, background .15s ease;
+    letter-spacing: -0.1px;
   }
-  .addr-card.active, .addr-card:has(+ .addr-card.active) { /* no-op */ }
-  .addr-card.active { border-color: var(--green); background: var(--green-soft); }
-  .addr-card .addr-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .addr-card .addr-name { font-size: 15px; font-weight: 700; letter-spacing: -0.1px; }
-  .addr-card .addr-recipient { font-size: 12.5px; color: var(--green); font-weight: 600; margin-top: 2px; }
-  .addr-card .addr-line { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.45; white-space: pre-line; }
-  .addr-empty {
-    background: var(--surface);
-    border: 1.5px dashed var(--line);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 12px;
-    display: flex; align-items: center; gap: 12px;
-    cursor: pointer;
-  }
-  .addr-empty:hover { border-color: var(--green); }
-  .link-btn {
-    background: none; border: none;
-    color: var(--green); font: inherit;
-    font-size: 12.5px; font-weight: 700;
-    cursor: pointer;
-    padding: 4px 6px;
-  }
-
-  /* Courier picker */
-  .couriers { display: grid; gap: 10px; }
-  .courier {
-    background: var(--surface);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: border-color .15s ease, background .15s ease;
-    overflow: hidden;
-    display: block;
-  }
-  .courier:has(input:checked) {
-    border-color: var(--green);
-    background: var(--green-soft);
-  }
-  .courier input { position: absolute; opacity: 0; pointer-events: none; }
-  .courier .c-body { padding: 12px 14px; }
-  .courier .c-head { display: flex; align-items: center; gap: 12px; }
-  .courier .c-emoji { font-size: 26px; }
-  .courier .c-name { font-size: 14.5px; font-weight: 700; letter-spacing: -0.1px; }
-  .courier .c-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .courier .c-price { margin-left: auto; font-weight: 800; font-size: 15px; color: var(--ink); }
-  .courier .c-tag {
-    font-size: 10px; font-weight: 700;
-    background: var(--line); color: var(--muted);
-    padding: 2px 7px; border-radius: 999px;
-    margin-left: 4px; text-transform: uppercase; letter-spacing: .3px;
-    vertical-align: 2px;
-  }
-  .courier .c-tag.green { background: var(--accent); color: var(--green-deep); }
-  .courier .c-detail {
-    font-size: 12px; color: var(--muted); line-height: 1.5;
-    margin-top: 8px; padding-top: 10px;
-    border-top: 1px solid var(--line);
-    display: none;
-  }
-  .courier:has(input:checked) .c-detail { display: block; }
-  .courier.recommended { position: relative; }
-  .courier.recommended::after {
-    content: 'BEST VALUE';
-    position: absolute; top: -1px; right: -1px;
-    background: var(--accent); color: var(--green-deep);
-    font-size: 9.5px; font-weight: 800;
-    padding: 3px 8px;
-    border-bottom-left-radius: 10px;
-    letter-spacing: .5px;
-  }
-
-  /* Cart */
-  .cart-recipe-group {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    margin-bottom: 14px;
-    overflow: hidden;
-  }
-  .cart-recipe-group .group-h {
-    padding: 12px 14px;
-    background: var(--green-soft);
-    display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid var(--line);
-  }
-  .cart-recipe-group .group-h .emoji { font-size: 20px; }
-  .cart-recipe-group .group-h .info { flex: 1; }
-  .cart-recipe-group .group-h h4 { margin: 0; font-size: 13.5px; font-weight: 700; }
-  .cart-recipe-group .group-h .sub { font-size: 11.5px; color: var(--muted); }
-  .cart-recipe-group .group-h .remove {
-    background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px;
-    font-size: 12px; font-weight: 600;
-  }
-  .cart-item {
-    padding: 11px 14px;
-    display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid var(--line);
-    font-size: 14px;
-  }
-  .cart-item:last-child { border-bottom: none; }
-  .cart-item .name { flex: 1; }
-  .cart-item .qty { color: var(--muted); font-size: 12.5px; }
-  .cart-item .from {
-    font-size: 10.5px; color: var(--muted); margin-left: 8px;
-    background: var(--bg); padding: 2px 7px; border-radius: 999px;
-  }
-
-  .cart-summary {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 16px;
+  button:hover { background: #FFCB2E; }
+  button:active { transform: scale(0.96); }
+  .err {
+    color: #FF9D8A;
+    font-size: 12.5px;
+    font-weight: 600;
+    height: 18px;
     margin-top: 6px;
   }
-  .cart-summary .row {
-    display: flex; justify-content: space-between;
-    padding: 6px 0;
-    font-size: 14px;
+  .meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 22px;
+    line-height: 1.6;
   }
-  .cart-summary .row.total {
-    border-top: 1px solid var(--line);
-    margin-top: 6px; padding-top: 12px;
-    font-weight: 800; font-size: 16px;
-  }
-  .cart-summary .muted { color: var(--muted); }
-
-  /* Add recipe form */
-  .form-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 16px;
-    display: grid; gap: 14px;
-  }
-  .form-card label {
-    display: block;
-    font-size: 12px; font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: .4px;
-  }
-  .form-card input, .form-card textarea, .form-card select {
-    width: 100%;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 11px 12px;
-    font: inherit;
-    font-size: 14.5px;
-    color: var(--ink);
-    background: var(--bg);
-    outline: none;
-    transition: border-color .15s ease;
-  }
-  .form-card input:focus, .form-card textarea:focus, .form-card select:focus {
-    border-color: var(--green);
-    background: var(--surface);
-  }
-  .form-card textarea { resize: vertical; min-height: 110px; font-family: inherit; }
-  .form-card .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-  /* Bottom tab nav */
-  .tabbar {
-    position: absolute; left: 0; right: 0; bottom: 0;
-    background: var(--surface);
-    border-top: 1px solid var(--line);
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
-    z-index: 20;
-  }
-  .tab {
-    border: none; background: none;
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    padding: 6px 4px;
-    color: var(--muted);
-    font: inherit; font-size: 10.5px; font-weight: 600;
-    cursor: pointer;
-  }
-  .tab svg { width: 22px; height: 22px; }
-  .tab.active { color: var(--green); }
-
-  /* Toast */
-  .toast {
-    position: absolute; bottom: 130px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--ink); color: #fff;
-    padding: 11px 18px;
-    border-radius: 999px;
-    font-size: 13px; font-weight: 600;
-    box-shadow: var(--shadow-md);
-    opacity: 0; pointer-events: none;
-    transition: opacity .2s ease, transform .2s ease;
-    z-index: 30;
-    white-space: nowrap;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* FAB */
-  .fab {
-    position: absolute;
-    bottom: 80px; right: 18px;
-    width: 54px; height: 54px;
-    background: var(--green);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    font-size: 26px;
-    font-weight: 300;
-    cursor: pointer;
-    box-shadow: 0 6px 18px rgba(0,87,63,.35);
-    z-index: 15;
-    display: grid; place-items: center;
-    transition: transform .1s ease;
-  }
-  .fab:active { transform: scale(.92); }
+  .meta strong { color: rgba(255,255,255,0.7); font-weight: 600; }
 </style>
 </head>
 <body>
-<div class="phone">
-
-  <header class="appbar">
-    <div class="logo">W</div>
-    <h1>Dash<span class="sub">Cookbook concept</span></h1>
-    <button class="cart-pill" onclick="show('cart')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
-      <span class="dot" id="cart-count">0</span>
-    </button>
-  </header>
-
-  <!-- HOME -->
-  <main class="screen" id="screen-home">
-    <div class="greet">
-      <h2>What's for dinner, Razz?</h2>
-      <p>Tap a recipe to dash its ingredients straight into your cart.</p>
+<div class="card">
+  <div class="logo">W</div>
+  <h1>Woolies Redux</h1>
+  <div class="tag">Private Preview</div>
+  <p>This is a private design concept, not affiliated with Woolworths. Enter the access code to continue.</p>
+  <form id="f">
+    <div class="input-wrap">
+      <input id="pw" type="password" placeholder="Access code" autocomplete="off" autofocus>
+      <button type="submit">Enter</button>
     </div>
-
-    <div class="search-wrap" onclick="show('search'); setTimeout(()=>document.getElementById('q').focus(),50)">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input placeholder="Search recipes or ingredients…" readonly tabindex="-1">
-    </div>
-
-    <div class="section-h">
-      <h3>Your favourites</h3>
-      <span class="link" onclick="show('cookbook')">See all</span>
-    </div>
-    <div class="h-scroll" id="favs-scroll"></div>
-
-    <div class="section-h">
-      <h3>Quick weeknight wins</h3>
-    </div>
-    <div class="h-scroll" id="quick-scroll"></div>
-  </main>
-
-  <!-- SEARCH -->
-  <main class="screen hidden" id="screen-search">
-    <div class="search-wrap" id="search-bar">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input id="q" placeholder="e.g. chicken, butter chicken, basil…" oninput="runSearch()" autocomplete="off">
-      <button class="clear" onclick="clearSearch()">×</button>
-    </div>
-    <div id="search-results"></div>
-  </main>
-
-  <!-- COOKBOOK -->
-  <main class="screen hidden" id="screen-cookbook">
-    <div class="greet">
-      <h2>Your Cookbook</h2>
-      <p id="cookbook-sub">Every dish you've saved.</p>
-    </div>
-    <div class="recipe-list" id="cookbook-list"></div>
-  </main>
-
-  <!-- RECIPE DETAIL -->
-  <main class="screen hidden" id="screen-detail"></main>
-
-  <!-- ADD RECIPE -->
-  <main class="screen hidden" id="screen-add">
-    <div class="greet">
-      <h2>Add a recipe</h2>
-      <p>Whatever you cook regularly. Ingredients go straight to Dash when you cook it.</p>
-    </div>
-    <form class="form-card" onsubmit="saveRecipe(event)">
-      <div>
-        <label>Recipe name</label>
-        <input id="r-name" required placeholder="e.g. Bobotie, Sunday Roast, Tuna Pasta">
-      </div>
-      <div class="form-row-2">
-        <div>
-          <label>Emoji</label>
-          <input id="r-emoji" maxlength="2" placeholder="🍲">
-        </div>
-        <div>
-          <label>Cook time</label>
-          <input id="r-time" placeholder="30 min">
-        </div>
-      </div>
-      <div>
-        <label>Tags <span style="text-transform:none;font-weight:400">(comma separated)</span></label>
-        <input id="r-tags" placeholder="comfort, family, quick">
-      </div>
-      <div>
-        <label>Ingredients</label>
-        <textarea id="r-ings" required placeholder="One per line, like:&#10;500g chicken breast&#10;2 onions&#10;1 tin chopped tomatoes&#10;Garam masala"></textarea>
-        <p class="hint">Each line becomes one cart item. Put quantity first if you know it.</p>
-      </div>
-      <button class="cta-btn" type="submit">Save recipe</button>
-    </form>
-  </main>
-
-  <!-- CART -->
-  <main class="screen hidden" id="screen-cart">
-    <div class="greet">
-      <h2>Your Dash cart</h2>
-      <p id="cart-sub">Ingredients combined from every recipe you've added.</p>
-    </div>
-    <div id="cart-content"></div>
-  </main>
-
-  <!-- ADDRESS BOOK -->
-  <main class="screen hidden" id="screen-addr">
-    <div class="greet">
-      <h2>Deliver to</h2>
-      <p>Add the addresses you send orders to. Tap one to make it active.</p>
-    </div>
-    <div id="addr-list"></div>
-    <div class="form-card" style="margin-top:16px">
-      <div>
-        <label>Label</label>
-        <input id="addr-label" placeholder="e.g. Mom at Berghaven, Home, Work">
-      </div>
-      <div>
-        <label>Recipient name <span style="text-transform:none;font-weight:400">(optional)</span></label>
-        <input id="addr-recipient" placeholder="e.g. Margaret Cheese">
-      </div>
-      <div>
-        <label>Address</label>
-        <textarea id="addr-line1" required placeholder="Berghaven Retirement Village&#10;Room 14, Block B&#10;42 Sunset Drive, Cape Town"></textarea>
-      </div>
-      <button class="cta-btn" onclick="saveAddressFromForm()">Save address</button>
-    </div>
-  </main>
-
-  <button class="fab" id="fab" onclick="show('add')" title="Add recipe">+</button>
-
-  <nav class="tabbar">
-    <button class="tab active" data-tab="home" onclick="show('home')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      Home
-    </button>
-    <button class="tab" data-tab="search" onclick="show('search')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      Search
-    </button>
-    <button class="tab" data-tab="cookbook" onclick="show('cookbook')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      Cookbook
-    </button>
-    <button class="tab" data-tab="cart" onclick="show('cart')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
-      Cart
-    </button>
-  </nav>
-
-  <div class="toast" id="toast"></div>
+    <div class="err" id="err"></div>
+  </form>
+  <div class="meta">
+    <strong>Build status:</strong> active prototype<br>
+    Made with care 🧀
+  </div>
 </div>
 
 <script>
-/* ============================================================
-   SEED RECIPES — South African / Woolies-friendly favourites
-   ============================================================ */
-/* ============================================================
-   SEED PRODUCTS — real Woolies items (mocked prices in ZAR)
-   ============================================================ */
-const SEED_PRODUCTS = [
-  // Frozen ready meals (the spinach & feta pie lives here)
-  { id:'p-snf-pie',     name:'Spinach & Feta Filo Pies (2-pack)', cat:'Frozen ready meals', emoji:'🥧', price:79.99, unit:'320g', tags:['spinach','feta','pie','vegetarian','filo','ready meal','easy'] },
-  { id:'p-snf-quiche',  name:'Spinach & Feta Quiche',             cat:'Frozen ready meals', emoji:'🥧', price:89.99, unit:'400g', tags:['spinach','feta','quiche','vegetarian'] },
-  { id:'p-chk-pie',     name:'Free-range Chicken & Mushroom Pie', cat:'Frozen ready meals', emoji:'🥧', price:74.99, unit:'400g', tags:['chicken','mushroom','pie','easy'] },
-  { id:'p-cot-pie',     name:'Cottage Pie (single serve)',        cat:'Frozen ready meals', emoji:'🍲', price:64.99, unit:'350g', tags:['beef','potato','single','comfort','easy'] },
-  { id:'p-fish-pie',    name:'Salmon & Prawn Fish Pie',           cat:'Frozen ready meals', emoji:'🐟', price:119.99, unit:'400g', tags:['fish','salmon','prawn','pie','easy'] },
-  { id:'p-mac-cheese',  name:'Macaroni & Cheese Bake',            cat:'Frozen ready meals', emoji:'🧀', price:69.99, unit:'400g', tags:['pasta','cheese','comfort','easy'] },
-  { id:'p-lasagne',     name:'Beef Lasagne',                      cat:'Frozen ready meals', emoji:'🍝', price:84.99, unit:'400g', tags:['pasta','beef','italian','easy'] },
+// SHA-256 of the access code. Bypassable via view-source but enough to keep
+// search engines, casual visitors, and "let me click this random link" out.
+// Real protection (CF Access / Worker auth) lands when we go public.
+const HASH = "7cd84c52f1e1b051dfdde96b6e17b2e8f755277d27ed018e9fdc19dd4432ba48";
 
-  // Soups (good for retirement home — soft, warm, easy to eat)
-  { id:'p-soup-tom',    name:'Roasted Tomato Soup',               cat:'Soups', emoji:'🍅', price:39.99, unit:'500ml', tags:['soup','tomato','warm','soft'] },
-  { id:'p-soup-but',    name:'Butternut Soup',                    cat:'Soups', emoji:'🎃', price:39.99, unit:'500ml', tags:['soup','butternut','warm','soft'] },
-  { id:'p-soup-chk',    name:'Chicken Noodle Soup',               cat:'Soups', emoji:'🍜', price:44.99, unit:'500ml', tags:['soup','chicken','warm','soft','comfort'] },
-
-  // Bakery
-  { id:'p-bread-seed',  name:'Seed Loaf',                         cat:'Bakery', emoji:'🍞', price:34.99, unit:'700g', tags:['bread','seed','wholewheat'] },
-  { id:'p-rolls',       name:'Soft White Rolls (6-pack)',         cat:'Bakery', emoji:'🥖', price:24.99, unit:'6 pack', tags:['bread','rolls','soft'] },
-  { id:'p-croissant',   name:'All-butter Croissants (4-pack)',    cat:'Bakery', emoji:'🥐', price:54.99, unit:'4 pack', tags:['breakfast','french','butter'] },
-  { id:'p-rusks',       name:'Buttermilk Rusks',                  cat:'Bakery', emoji:'🍪', price:64.99, unit:'500g', tags:['rusks','breakfast','tea','south african'] },
-
-  // Cheese & deli
-  { id:'p-feta',        name:'Danish Feta',                       cat:'Cheese', emoji:'🧀', price:64.99, unit:'200g', tags:['feta','cheese','greek'] },
-  { id:'p-cheddar',     name:'Mature Cheddar',                    cat:'Cheese', emoji:'🧀', price:89.99, unit:'250g', tags:['cheese','cheddar'] },
-  { id:'p-mozza',       name:'Buffalo Mozzarella',                cat:'Cheese', emoji:'🧀', price:74.99, unit:'125g', tags:['cheese','mozzarella','italian'] },
-  { id:'p-burrata',     name:'Burrata',                           cat:'Cheese', emoji:'🧀', price:99.99, unit:'125g', tags:['cheese','burrata','italian'] },
-
-  // Fresh produce
-  { id:'p-spinach',     name:'Baby Spinach',                      cat:'Fresh produce', emoji:'🥬', price:29.99, unit:'200g', tags:['spinach','greens','vegetable','salad'] },
-  { id:'p-tomato',      name:'Rosa Tomatoes',                     cat:'Fresh produce', emoji:'🍅', price:34.99, unit:'250g', tags:['tomato','salad','vegetable'] },
-  { id:'p-avo',         name:'Ripe Avocados (3-pack)',            cat:'Fresh produce', emoji:'🥑', price:54.99, unit:'3 pack', tags:['avocado','vegetable'] },
-  { id:'p-bananas',     name:'Bananas',                           cat:'Fresh produce', emoji:'🍌', price:24.99, unit:'1 kg', tags:['fruit','banana','breakfast'] },
-  { id:'p-berries',     name:'Mixed Berries',                     cat:'Fresh produce', emoji:'🫐', price:79.99, unit:'250g', tags:['berries','fruit','blueberry','strawberry'] },
-
-  // Dairy & eggs
-  { id:'p-milk',        name:'Full Cream Milk',                   cat:'Dairy', emoji:'🥛', price:24.99, unit:'2L', tags:['milk','dairy'] },
-  { id:'p-eggs',        name:'Free-range Eggs (6)',               cat:'Dairy', emoji:'🥚', price:54.99, unit:'6 large', tags:['eggs','breakfast'] },
-  { id:'p-yogurt',      name:'Greek Yogurt',                      cat:'Dairy', emoji:'🥛', price:44.99, unit:'500g', tags:['yogurt','greek','breakfast','dairy'] },
-  { id:'p-butter',      name:'Salted Butter',                     cat:'Dairy', emoji:'🧈', price:64.99, unit:'500g', tags:['butter','dairy','baking'] },
-
-  // Pantry
-  { id:'p-pasta',       name:'Penne Pasta',                       cat:'Pantry', emoji:'🍝', price:24.99, unit:'500g', tags:['pasta','penne'] },
-  { id:'p-rice',        name:'Basmati Rice',                      cat:'Pantry', emoji:'🍚', price:64.99, unit:'1 kg', tags:['rice','basmati','indian'] },
-  { id:'p-olive-oil',   name:'Extra Virgin Olive Oil',            cat:'Pantry', emoji:'🫒', price:139.99, unit:'500ml', tags:['olive oil','oil','italian'] },
-  { id:'p-tomato-tin',  name:'Tinned Chopped Tomatoes',           cat:'Pantry', emoji:'🥫', price:18.99, unit:'400g', tags:['tomato','tinned','pantry'] },
-
-  // Sweet treats — good for a care home
-  { id:'p-choc',        name:'Belgian Chocolate Slab',            cat:'Sweets', emoji:'🍫', price:64.99, unit:'150g', tags:['chocolate','sweet','treat','belgian'] },
-  { id:'p-biscuits',    name:'Shortbread Biscuits',               cat:'Sweets', emoji:'🍪', price:44.99, unit:'200g', tags:['biscuits','shortbread','tea','sweet'] },
-  { id:'p-cake-carrot', name:'Carrot Cake Slice',                 cat:'Sweets', emoji:'🍰', price:34.99, unit:'120g', tags:['cake','carrot','dessert','sweet'] },
-];
-
-const SEED_RECIPES = [
-  { id:'bobotie', name:'Bobotie', emoji:'🍲', time:'1 hr 10 min', tags:['comfort','classic','family'], skip:[],
-    ingredients:[
-      '1 kg lean beef mince','2 onions, chopped','2 slices white bread',
-      '1 cup milk','2 tbsp curry powder','1 tbsp turmeric','2 tbsp chutney',
-      '2 tbsp white vinegar','50g raisins','3 large eggs','4 bay leaves','Salt & pepper'
-    ] },
-  { id:'butter-chicken', name:'Butter Chicken', emoji:'🍗', time:'45 min', tags:['curry','indian','weeknight'], skip:[],
-    ingredients:[
-      '600g chicken breast','1 tin chopped tomatoes','200ml cream','100g butter',
-      '2 onions','4 cloves garlic','1 thumb ginger','2 tbsp garam masala',
-      '1 tbsp paprika','Fresh coriander','Basmati rice','Naan bread'
-    ] },
-  { id:'tuna-pasta', name:'Tuna Pasta Bake', emoji:'🐟', time:'30 min', tags:['quick','student','pantry'], skip:[],
-    ingredients:[
-      '500g penne pasta','2 tins tuna in brine','1 jar tomato pasta sauce',
-      '200g cheddar cheese','1 onion','2 cloves garlic','Olive oil','Italian herbs'
-    ] },
-  { id:'sunday-roast', name:'Sunday Roast Chicken', emoji:'🥘', time:'1 hr 30 min', tags:['family','sunday','classic'], skip:[],
-    ingredients:[
-      '1.5 kg whole chicken','1 kg potatoes','500g baby carrots',
-      '2 lemons','1 head garlic','Fresh rosemary','Fresh thyme',
-      'Olive oil','Butter','Chicken stock'
-    ] },
-  { id:'chakalaka', name:'Chakalaka & Pap', emoji:'🌽', time:'40 min', tags:['braai','south-african','vegetarian'], skip:[],
-    ingredients:[
-      '2 onions','3 carrots','1 red pepper','1 green pepper',
-      '1 tin baked beans','1 tin chopped tomatoes','2 tbsp curry powder',
-      '500g maize meal','Salt','Sunflower oil'
-    ] },
-  { id:'thai-green', name:'Thai Green Curry', emoji:'🥥', time:'35 min', tags:['curry','thai','quick'], skip:[],
-    ingredients:[
-      '600g chicken thigh','1 tin coconut milk','3 tbsp green curry paste',
-      '1 brinjal','1 bunch baby corn','Fresh basil','Lime leaves',
-      '1 lime','Fish sauce','Brown sugar','Jasmine rice'
-    ] },
-  { id:'beef-stew', name:'Beef Potjie', emoji:'🍖', time:'3 hr', tags:['braai','slow','winter'], skip:[],
-    ingredients:[
-      '1 kg beef chuck','500g baby potatoes','3 carrots','2 onions',
-      '1 cup red wine','2 cups beef stock','3 cloves garlic',
-      'Bay leaves','Worcestershire sauce','Tomato paste'
-    ] },
-  { id:'greek-salad', name:'Greek Salad', emoji:'🥗', time:'15 min', tags:['summer','quick','no-cook'], skip:['Salt & pepper'],
-    ingredients:[
-      '4 large tomatoes','1 cucumber','1 red onion','200g feta cheese',
-      '1 cup kalamata olives','Olive oil','Dried oregano','Lemon','Salt & pepper'
-    ] },
-  { id:'breakfast', name:'Big Weekend Breakfast', emoji:'🍳', time:'25 min', tags:['breakfast','weekend'], skip:[],
-    ingredients:[
-      '8 eggs','500g back bacon','6 pork sausages','4 tomatoes',
-      '200g mushrooms','1 loaf sourdough','Butter','Baked beans'
-    ] },
-  { id:'pizza-night', name:'Friday Night Pizza', emoji:'🍕', time:'45 min', tags:['family','friday'], skip:[],
-    ingredients:[
-      '500g pizza flour','1 sachet yeast','1 jar pizza sauce',
-      '300g mozzarella','100g pepperoni','Fresh basil',
-      '1 ball burrata','Olive oil'
-    ] },
-];
-
-/* ============================================================
-   STATE — localStorage backed
-   ============================================================ */
-const STORE_RECIPES = 'wc.recipes.v1';
-const STORE_CART = 'wc.cart.v1';
-const STORE_LOOSE = 'wc.loose.v1';
-const STORE_ADDR = 'wc.addr.v1';
-
-function loadRecipes() {
-  const raw = localStorage.getItem(STORE_RECIPES);
-  if (raw) try { return JSON.parse(raw); } catch {}
-  localStorage.setItem(STORE_RECIPES, JSON.stringify(SEED_RECIPES));
-  return [...SEED_RECIPES];
-}
-function saveRecipes(r) { localStorage.setItem(STORE_RECIPES, JSON.stringify(r)); }
-function loadCart() {
-  try { return JSON.parse(localStorage.getItem(STORE_CART) || '[]'); } catch { return []; }
-}
-function saveCart(c) { localStorage.setItem(STORE_CART, JSON.stringify(c)); }
-
-/* Loose items (products added directly, not from recipes) */
-function loadLooseCart() { try { return JSON.parse(localStorage.getItem(STORE_LOOSE) || '[]'); } catch { return []; } }
-function saveLooseCart(c) { localStorage.setItem(STORE_LOOSE, JSON.stringify(c)); }
-function addLoose(productId) {
-  const p = SEED_PRODUCTS.find(x => x.id === productId);
-  if (!p) return;
-  const loose = loadLooseCart();
-  const ex = loose.find(x => x.id === productId);
-  if (ex) ex.qty += 1; else loose.push({ id: productId, qty: 1 });
-  saveLooseCart(loose);
-  toast(`✓ ${p.name} added`);
-  updateCartCount();
-  runSearch();
-}
-function changeLoose(productId, delta) {
-  let loose = loadLooseCart();
-  const ex = loose.find(x => x.id === productId);
-  if (!ex) return;
-  ex.qty += delta;
-  if (ex.qty <= 0) loose = loose.filter(x => x.id !== productId);
-  saveLooseCart(loose);
-  updateCartCount();
-  // re-render whichever screen is visible
-  if (!document.getElementById('screen-search').classList.contains('hidden')) runSearch();
-  if (!document.getElementById('screen-cart').classList.contains('hidden')) renderCart();
+async function sha256(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-/* Address book */
-function loadAddresses() {
-  try { return JSON.parse(localStorage.getItem(STORE_ADDR) || '[]'); } catch { return []; }
-}
-function saveAddresses(a) { localStorage.setItem(STORE_ADDR, JSON.stringify(a)); }
-function getActiveAddress() {
-  const all = loadAddresses();
-  return all.find(a => a.active) || all[0] || null;
-}
-function setActiveAddress(id) {
-  const all = loadAddresses().map(a => ({ ...a, active: a.id === id }));
-  saveAddresses(all);
-}
-function addAddress(label, line1, recipient) {
-  const all = loadAddresses().map(a => ({ ...a, active: false }));
-  all.push({ id: 'a-' + Date.now().toString(36), label, line1, recipient, active: true });
-  saveAddresses(all);
-}
-function removeAddress(id) {
-  const all = loadAddresses().filter(a => a.id !== id);
-  if (all.length && !all.find(a=>a.active)) all[0].active = true;
-  saveAddresses(all);
-  renderCart();
+// If already authed, jump straight in
+if (sessionStorage.getItem('wr.auth') === 'ok' || localStorage.getItem('wr.auth') === 'ok') {
+  location.replace('./app.html');
 }
 
-let recipes = loadRecipes();
-let cart = loadCart(); // [{recipeId, items: [{name, qty}]}]
-let currentDetail = null;
-
-/* ============================================================
-   ROUTING
-   ============================================================ */
-function show(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-  const target = document.getElementById('screen-' + name);
-  if (target) target.classList.remove('hidden');
-  document.querySelectorAll('.tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === name || (name === 'add' && t.dataset.tab === 'cookbook'));
-  });
-  // hide FAB on detail/add/cart/addr screens
-  document.getElementById('fab').style.display = ['add','detail','cart','addr'].includes(name) ? 'none' : 'grid';
-  // scroll top
-  target?.scrollTo(0, 0);
-  if (name === 'home') renderHome();
-  if (name === 'cookbook') renderCookbook();
-  if (name === 'cart') renderCart();
-  if (name === 'search') runSearch();
-  if (name === 'addr') renderAddrScreen();
-}
-
-function renderAddrScreen() {
-  const all = loadAddresses();
-  const el = document.getElementById('addr-list');
-  if (all.length === 0) {
-    el.innerHTML = `<p style="color:var(--muted);font-size:13.5px;margin:4px 4px 8px">No saved addresses yet — add one below 👇</p>`;
-    return;
-  }
-  el.innerHTML = all.map(a => `
-    <div class="addr-card ${a.active?'active':''}" onclick="setActiveAddress('${a.id}');renderAddrScreen()">
-      <div class="addr-head">
-        <span style="font-size:11px;font-weight:700;color:${a.active?'var(--green)':'var(--muted)'};letter-spacing:.4px">
-          ${a.active?'✓ ACTIVE':'TAP TO SELECT'}
-        </span>
-        <button class="link-btn" onclick="event.stopPropagation();removeAddress('${a.id}')">Remove</button>
-      </div>
-      <div class="addr-name">${escapeHTML(a.label)}</div>
-      ${a.recipient ? `<div class="addr-recipient">For ${escapeHTML(a.recipient)}</div>` : ''}
-      <div class="addr-line">${escapeHTML(a.line1)}</div>
-    </div>
-  `).join('');
-}
-
-function saveAddressFromForm() {
-  const label = document.getElementById('addr-label').value.trim();
-  const recipient = document.getElementById('addr-recipient').value.trim();
-  const line1 = document.getElementById('addr-line1').value.trim();
-  if (!label || !line1) { toast('⚠️ Need at least a label and address'); return; }
-  addAddress(label, line1, recipient);
-  document.getElementById('addr-label').value = '';
-  document.getElementById('addr-recipient').value = '';
-  document.getElementById('addr-line1').value = '';
-  toast(`✓ ${label} saved`);
-  renderAddrScreen();
-  setTimeout(() => show('cart'), 700);
-}
-
-/* ============================================================
-   RENDERING
-   ============================================================ */
-function recipeCardHTML(r, opts = {}) {
-  const badge = opts.badge ? `<div class="badge">${opts.badge}</div>` : '';
-  return `
-    <article class="recipe-card" onclick="openRecipe('${r.id}')">
-      <div class="img">${badge}${r.emoji || '🍽'}</div>
-      <div class="body">
-        <h4>${escapeHTML(r.name)}</h4>
-        <div class="meta">
-          <span>⏱ ${escapeHTML(r.time || '—')}</span>
-          <span>🧂 ${r.ingredients.length} items</span>
-        </div>
-      </div>
-    </article>`;
-}
-
-function renderHome() {
-  const favs = recipes.slice(0, 5);
-  const quick = recipes.filter(r => r.tags?.some(t => ['quick','weeknight','student','breakfast'].includes(t)));
-  document.getElementById('favs-scroll').innerHTML =
-    favs.map(r => recipeCardHTML(r, { badge: 'Saved' })).join('') || emptyHTML('Nothing saved yet', 'Tap + to add your first recipe.');
-  document.getElementById('quick-scroll').innerHTML =
-    quick.map(r => recipeCardHTML(r)).join('') || '';
-  updateCartCount();
-}
-
-function renderCookbook() {
-  document.getElementById('cookbook-sub').textContent = `${recipes.length} recipe${recipes.length===1?'':'s'} saved.`;
-  document.getElementById('cookbook-list').innerHTML =
-    recipes.length === 0
-      ? emptyHTML('Your cookbook is empty', 'Add a recipe with the + button.')
-      : recipes.map(r => recipeCardHTML(r)).join('');
-}
-
-function openRecipe(id) {
-  const r = recipes.find(x => x.id === id);
-  if (!r) return;
-  currentDetail = { ...r, skip: [...(r.skip || [])] };
-  const screen = document.getElementById('screen-detail');
-  screen.innerHTML = `
-    <div class="detail-hero">
-      <button class="back-btn" onclick="show('cookbook')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-      </button>
-      ${r.emoji || '🍽'}
-    </div>
-    <div class="detail-meta">
-      <h2>${escapeHTML(r.name)}</h2>
-      <div class="tags">${(r.tags||[]).map(t => `<span class="tag">${escapeHTML(t)}</span>`).join('')}</div>
-      <div class="meta"><span>⏱ ${escapeHTML(r.time || '—')}</span><span>🧂 ${r.ingredients.length} ingredients</span></div>
-    </div>
-    <div class="ingredients">
-      <div class="header">
-        <h3>Shopping list</h3>
-        <span class="count">Tap to skip items you already have</span>
-      </div>
-      ${r.ingredients.map((ing,i) => `
-        <div class="ingredient ${currentDetail.skip.includes(ing)?'skip':''}" onclick="toggleSkip('${escapeAttr(ing)}', this)">
-          <div class="check">✓</div>
-          <div class="name">${escapeHTML(ing)}</div>
-        </div>
-      `).join('')}
-    </div>
-    <div class="cta-bar">
-      <button class="cta-btn" onclick="addRecipeToCart('${r.id}')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
-        Add ingredients to Dash
-        <span class="price" id="add-count">${r.ingredients.length - currentDetail.skip.length} items</span>
-      </button>
-    </div>
-  `;
-  show('detail');
-}
-
-function toggleSkip(ing, el) {
-  ing = unescapeAttr(ing);
-  const idx = currentDetail.skip.indexOf(ing);
-  if (idx > -1) currentDetail.skip.splice(idx, 1);
-  else currentDetail.skip.push(ing);
-  el.classList.toggle('skip');
-  document.getElementById('add-count').textContent =
-    `${currentDetail.ingredients.length - currentDetail.skip.length} items`;
-}
-
-function addRecipeToCart(id) {
-  const r = recipes.find(x => x.id === id);
-  if (!r) return;
-  const items = currentDetail.ingredients.filter(i => !currentDetail.skip.includes(i)).map(name => ({ name }));
-  if (items.length === 0) { toast('Nothing to add — all items skipped.'); return; }
-  // Remove any prior entry for this recipe, then add fresh
-  cart = cart.filter(g => g.recipeId !== id);
-  cart.push({ recipeId: id, items, addedAt: Date.now() });
-  saveCart(cart);
-  toast(`✓ ${r.name} added to Dash`);
-  updateCartCount();
-  setTimeout(() => show('cart'), 600);
-}
-
-/* ============================================================
-   SEARCH — fuzzy across name, tags, ingredients
-   ============================================================ */
-function runSearch() {
-  const q = (document.getElementById('q')?.value || '').trim().toLowerCase();
-  const bar = document.getElementById('search-bar');
-  bar.classList.toggle('has-value', q.length > 0);
-  const results = document.getElementById('search-results');
-
-  if (!q) {
-    results.innerHTML = `
-      <div class="section-h"><h3>Popular searches</h3></div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 4px">
-        ${['spinach and feta pie','soup','bread','cheese','chocolate','milk','chicken','pasta']
-          .map(t => `<button class="tag" style="border:none;cursor:pointer;padding:8px 14px;font-size:13px"
-                            onclick="document.getElementById('q').value='${t}';runSearch()">${t}</button>`).join('')}
-      </div>
-      <div class="section-h" style="margin-top:24px"><h3>Browse aisles</h3></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        ${[...new Set(SEED_PRODUCTS.map(p=>p.cat))].map(c => `
-          <button class="aisle-chip" onclick="document.getElementById('q').value='${escapeAttr(c)}';runSearch()">
-            ${escapeHTML(c)}
-          </button>`).join('')}
-      </div>
-    `;
-    return;
-  }
-
-  // PRODUCTS — fuzzy match across name, category, tags
-  const productMatches = SEED_PRODUCTS.map(p => {
-    const hay = [p.name, p.cat, ...(p.tags||[])].join(' ').toLowerCase();
-    let score = 0;
-    if (p.name.toLowerCase().includes(q)) score += 12;
-    if (p.cat.toLowerCase().includes(q)) score += 4;
-    if ((p.tags||[]).some(t => t.includes(q))) score += 6;
-    // word-by-word for multi-word queries like "spinach and feta"
-    const words = q.split(/\s+/).filter(w => w.length>2 && w!=='and' && w!=='the' && w!=='for');
-    const hits = words.filter(w => hay.includes(w));
-    score += hits.length * 3;
-    return { p, score };
-  }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
-
-  // RECIPES — same as before
-  const recipeMatches = recipes.map(r => {
-    const hay = [r.name, ...(r.tags||[]), ...r.ingredients].join(' ').toLowerCase();
-    let score = 0;
-    if (r.name.toLowerCase().includes(q)) score += 10;
-    if ((r.tags||[]).some(t => t.includes(q))) score += 5;
-    const ingHits = r.ingredients.filter(i => i.toLowerCase().includes(q));
-    score += ingHits.length * 2;
-    if (hay.includes(q)) score += 1;
-    return { r, score, ingHits };
-  }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
-
-  if (productMatches.length === 0 && recipeMatches.length === 0) {
-    results.innerHTML = emptyHTML(`No matches for "${escapeHTML(q)}"`, 'Try a product name like "spinach and feta pie" or an ingredient like "chicken".');
-    return;
-  }
-
-  const productHTML = productMatches.length ? `
-    <div class="section-h"><h3>Products (${productMatches.length})</h3></div>
-    <div class="product-list">
-      ${productMatches.slice(0, 20).map(m => productCardHTML(m.p)).join('')}
-    </div>
-  ` : '';
-
-  const recipeHTML = recipeMatches.length ? `
-    <div class="section-h" style="margin-top:18px"><h3>Recipes (${recipeMatches.length})</h3></div>
-    <div class="recipe-list">
-      ${recipeMatches.map(m => {
-        const hint = m.ingHits.length && !m.r.name.toLowerCase().includes(q)
-          ? `<div style="font-size:11.5px;color:var(--green);margin-top:4px;font-weight:600">Uses: ${m.ingHits.slice(0,2).map(escapeHTML).join(', ')}${m.ingHits.length>2?'…':''}</div>`
-          : '';
-        return `
-        <article class="recipe-card" onclick="openRecipe('${m.r.id}')">
-          <div class="img">${m.r.emoji || '🍽'}</div>
-          <div class="body">
-            <h4>${escapeHTML(m.r.name)}</h4>
-            <div class="meta"><span>⏱ ${escapeHTML(m.r.time||'—')}</span><span>🧂 ${m.r.ingredients.length}</span></div>
-            ${hint}
-          </div>
-        </article>`;
-      }).join('')}
-    </div>
-  ` : '';
-
-  results.innerHTML = productHTML + recipeHTML;
-}
-
-function productCardHTML(p) {
-  const inCart = (loadLooseCart().find(x => x.id === p.id)?.qty || 0);
-  return `
-    <div class="product-card">
-      <div class="p-img">${p.emoji}</div>
-      <div class="p-body">
-        <div class="p-name">${escapeHTML(p.name)}</div>
-        <div class="p-meta"><span>${escapeHTML(p.unit)}</span> · <span>${escapeHTML(p.cat)}</span></div>
-        <div class="p-price">R ${p.price.toFixed(2)}</div>
-      </div>
-      ${inCart > 0 ? `
-        <div class="p-qty">
-          <button onclick="changeLoose('${p.id}', -1)">−</button>
-          <span>${inCart}</span>
-          <button onclick="changeLoose('${p.id}', 1)">+</button>
-        </div>
-      ` : `
-        <button class="p-add" onclick="addLoose('${p.id}')">Add</button>
-      `}
-    </div>
-  `;
-}
-function clearSearch() { document.getElementById('q').value = ''; runSearch(); }
-
-/* ============================================================
-   CART
-   ============================================================ */
-function updateCartCount() {
-  const recipeItems = cart.reduce((s, g) => s + g.items.length, 0);
-  const looseItems = loadLooseCart().reduce((s, x) => s + x.qty, 0);
-  document.getElementById('cart-count').textContent = recipeItems + looseItems;
-}
-
-function renderCart() {
-  const el = document.getElementById('cart-content');
-  const loose = loadLooseCart();
-  if (cart.length === 0 && loose.length === 0) {
-    el.innerHTML = renderAddressBlock() + emptyHTML('Your cart is empty', 'Search for products or open a recipe to start.');
-    document.getElementById('cart-sub').textContent = '';
-    updateCartCount();
-    return;
-  }
-  // Aggregate identical ingredient names across recipes
-  const agg = new Map();
-  cart.forEach(g => {
-    const r = recipes.find(x => x.id === g.recipeId);
-    g.items.forEach(it => {
-      const key = it.name.toLowerCase();
-      if (!agg.has(key)) agg.set(key, { name: it.name, sources: [] });
-      agg.get(key).sources.push(r?.name || g.recipeId);
-    });
-  });
-
-  const recipeItems = cart.reduce((s, g) => s + g.items.length, 0);
-  const looseItems = loose.reduce((s, x) => s + x.qty, 0);
-  const total = recipeItems + looseItems;
-  const looseSubtotal = loose.reduce((s, x) => {
-    const p = SEED_PRODUCTS.find(pp => pp.id === x.id);
-    return s + (p ? p.price * x.qty : 0);
-  }, 0);
-
-  document.getElementById('cart-sub').textContent =
-    `${total} item${total===1?'':'s'} · ${cart.length} recipe${cart.length===1?'':'s'} + ${loose.length} loose`;
-
-  // Loose products section
-  const looseHTML = loose.length ? `
-    <div class="cart-recipe-group">
-      <div class="group-h">
-        <span class="emoji">🛒</span>
-        <div class="info">
-          <h4>Direct from shelf</h4>
-          <div class="sub">${loose.length} product${loose.length===1?'':'s'} · R ${looseSubtotal.toFixed(2)}</div>
-        </div>
-      </div>
-      ${loose.map(x => {
-        const p = SEED_PRODUCTS.find(pp => pp.id === x.id);
-        if (!p) return '';
-        return `
-        <div class="cart-item">
-          <span style="font-size:18px;margin-right:4px">${p.emoji}</span>
-          <div class="name">${escapeHTML(p.name)}<div style="font-size:11.5px;color:var(--muted);font-weight:400">${escapeHTML(p.unit)}</div></div>
-          <div class="p-qty small">
-            <button onclick="changeLoose('${p.id}', -1)">−</button>
-            <span>${x.qty}</span>
-            <button onclick="changeLoose('${p.id}', 1)">+</button>
-          </div>
-          <div style="font-weight:700;font-size:13.5px;margin-left:10px;min-width:60px;text-align:right">R ${(p.price*x.qty).toFixed(2)}</div>
-        </div>`;
-      }).join('')}
-    </div>
-  ` : '';
-
-  // Per-recipe groups
-  const groups = cart.map(g => {
-    const r = recipes.find(x => x.id === g.recipeId);
-    if (!r) return '';
-    return `
-      <div class="cart-recipe-group">
-        <div class="group-h">
-          <span class="emoji">${r.emoji || '🍽'}</span>
-          <div class="info">
-            <h4>${escapeHTML(r.name)}</h4>
-            <div class="sub">${g.items.length} ingredients</div>
-          </div>
-          <button class="remove" onclick="removeRecipeFromCart('${g.recipeId}')">Remove</button>
-        </div>
-        ${g.items.map(it => {
-          const dup = agg.get(it.name.toLowerCase()).sources.length > 1;
-          return `<div class="cart-item">
-            <div class="name">${escapeHTML(it.name)}</div>
-            ${dup ? `<span class="from">×${agg.get(it.name.toLowerCase()).sources.length}</span>` : ''}
-          </div>`;
-        }).join('')}
-      </div>`;
-  }).join('');
-
-  el.innerHTML = `
-    ${renderAddressBlock()}
-    ${looseHTML}
-    ${groups}
-    <div class="cart-summary">
-      <div class="row"><span class="muted">Products subtotal</span><span>R ${looseSubtotal.toFixed(2)}</span></div>
-      <div class="row"><span class="muted">Recipe ingredient items</span><span>${recipeItems}</span></div>
-      <div class="row total"><span>Items in basket</span><span>${total}</span></div>
-    </div>
-
-    <div class="section-h" style="margin-top:18px"><h3>Choose your runner</h3></div>
-    <div class="couriers" id="couriers">
-      <label class="courier">
-        <input type="radio" name="courier" value="dash" checked onchange="renderCourierTotal()">
-        <div class="c-body">
-          <div class="c-head">
-            <span class="c-emoji">🛒</span>
-            <div>
-              <div class="c-name">Woolies Dash <span class="c-tag">Official</span></div>
-              <div class="c-sub">60 min · R 35 surcharge</div>
-            </div>
-            <div class="c-price">R 35</div>
-          </div>
-        </div>
-      </label>
-      <label class="courier recommended">
-        <input type="radio" name="courier" value="scoot" onchange="renderCourierTotal()">
-        <div class="c-body">
-          <div class="c-head">
-            <span class="c-emoji">🛵</span>
-            <div>
-              <div class="c-name">ScootShop <span class="c-tag green">Indie · R 15 cheaper</span></div>
-              <div class="c-sub">45 min · independent runner picks &amp; delivers</div>
-            </div>
-            <div class="c-price">R 20</div>
-          </div>
-          <div class="c-detail">
-            Runner walks your list, scans codes, sends photos before bagging. Pay direct. Perfect for sending to family — they'll call the recipient to confirm drop-off.
-          </div>
-        </div>
-      </label>
-      <label class="courier">
-        <input type="radio" name="courier" value="pickup" onchange="renderCourierTotal()">
-        <div class="c-body">
-          <div class="c-head">
-            <span class="c-emoji">🚶</span>
-            <div>
-              <div class="c-name">Click &amp; collect</div>
-              <div class="c-sub">Ready in 30 min · drive in &amp; grab</div>
-            </div>
-            <div class="c-price">Free</div>
-          </div>
-        </div>
-      </label>
-    </div>
-
-    <div style="display:grid;gap:10px;margin-top:14px">
-      <button class="cta-btn" onclick="checkoutDash()">
-        <span id="checkout-label">Place order</span>
-        <span class="price" id="checkout-fee">+ R 35</span>
-      </button>
-      <button class="cta-btn ghost" onclick="clearCart()">Clear cart</button>
-    </div>
-  `;
-  updateCartCount();
-}
-
-function renderAddressBlock() {
-  const addrs = loadAddresses();
-  const active = getActiveAddress();
-  if (addrs.length === 0) {
-    return `
-      <div class="addr-empty" onclick="show('addr')">
-        <div>
-          <div style="font-weight:700;font-size:14px">📍 Deliver to…</div>
-          <div style="font-size:12.5px;color:var(--muted);margin-top:2px">Add an address to send to yourself, family, or the retirement home.</div>
-        </div>
-        <button class="cta-btn" style="padding:9px 14px;width:auto;font-size:13px">Add address</button>
-      </div>`;
-  }
-  return `
-    <div class="addr-card">
-      <div class="addr-head">
-        <span style="font-size:11px;font-weight:700;color:var(--green);letter-spacing:.4px">DELIVERING TO</span>
-        <button class="link-btn" onclick="show('addr')">Change</button>
-      </div>
-      <div class="addr-name">${escapeHTML(active.label)}</div>
-      ${active.recipient ? `<div class="addr-recipient">For ${escapeHTML(active.recipient)}</div>` : ''}
-      <div class="addr-line">${escapeHTML(active.line1)}</div>
-    </div>
-  `;
-}
-
-function removeRecipeFromCart(id) {
-  cart = cart.filter(g => g.recipeId !== id);
-  saveCart(cart);
-  renderCart();
-  toast('Removed from cart');
-}
-function clearCart() {
-  if (cart.length === 0 && loadLooseCart().length === 0) return;
-  cart = []; saveCart(cart);
-  saveLooseCart([]);
-  renderCart(); toast('Cart cleared');
-}
-function checkoutDash() {
-  const c = document.querySelector('input[name="courier"]:checked')?.value || 'dash';
-  const addr = getActiveAddress();
-  if (!addr) { toast('⚠️ Add a delivery address first'); show('addr'); return; }
-  const recipient = addr.recipient ? ` for ${addr.recipient}` : '';
-  const msg = {
-    dash: `🛒 Order placed${recipient} · ${addr.label}`,
-    scoot: `🛵 ScootShop runner dispatched${recipient} · ${addr.label}`,
-    pickup: `🚶 Ready in 30 min at your nearest Woolies`
-  }[c];
-  toast(msg);
-}
-function renderCourierTotal() {
-  const c = document.querySelector('input[name="courier"]:checked')?.value || 'dash';
-  const fee = { dash: '+ R 35', scoot: '+ R 20', pickup: 'Free' }[c];
-  document.getElementById('checkout-fee').textContent = fee;
-}
-
-/* ============================================================
-   ADD RECIPE
-   ============================================================ */
-function saveRecipe(e) {
+document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const name = document.getElementById('r-name').value.trim();
-  const emoji = document.getElementById('r-emoji').value.trim() || '🍽';
-  const time = document.getElementById('r-time').value.trim() || '—';
-  const tags = document.getElementById('r-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
-  const ings = document.getElementById('r-ings').value.split('\n').map(t=>t.trim()).filter(Boolean);
-  if (!name || ings.length === 0) return;
-  const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + Date.now().toString(36);
-  recipes.unshift({ id, name, emoji, time, tags, ingredients: ings, skip: [] });
-  saveRecipes(recipes);
-  e.target.reset();
-  toast(`✓ ${name} saved`);
-  show('cookbook');
-}
-
-/* ============================================================
-   UTILS
-   ============================================================ */
-function escapeHTML(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function escapeAttr(s) { return String(s).replace(/'/g, '\\&#39;').replace(/"/g,'&quot;'); }
-function unescapeAttr(s) { return String(s).replace(/\\&#39;/g, "'").replace(/&quot;/g,'"'); }
-function emptyHTML(title, msg) {
-  return `<div class="empty"><div class="icon">🍽</div><h4>${escapeHTML(title)}</h4><p>${escapeHTML(msg)}</p></div>`;
-}
-let toastTimer;
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
-}
-
-/* boot */
-show('home');
+  const pw = document.getElementById('pw').value.trim();
+  const err = document.getElementById('err');
+  err.textContent = '';
+  const h = await sha256(pw);
+  if (h === HASH) {
+    localStorage.setItem('wr.auth', 'ok');
+    sessionStorage.setItem('wr.auth', 'ok');
+    location.replace('./app.html');
+  } else {
+    err.textContent = 'Nope. Try again.';
+    document.getElementById('pw').value = '';
+    document.getElementById('pw').focus();
+  }
+});
 </script>
 </body>
 </html>
