@@ -541,6 +541,21 @@
     background: var(--bg); padding: 2px 7px; border-radius: 999px;
   }
 
+  .cart-item .thumb {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg);
+    margin-right: 10px;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    color: var(--muted); font-size: 14px;
+  }
+  .cart-item .thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
   .cart-summary {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -1149,12 +1164,20 @@ function toggleSkip(ing, el) {
     `${(currentDetail.ingredients||[]).length - currentDetail.skip.length} items`;
 }
 
-function addRecipeToCart(id, source) {
+async function addRecipeToCart(id, source) {
   if (!currentDetail) return;
-  const items = (currentDetail.ingredients||[])
-    .filter(i => !currentDetail.skip.includes(i))
-    .map(name => ({ name }));
-  if (items.length === 0) { toast('Nothing to add — all items skipped.'); return; }
+  const rawItems = (currentDetail.ingredients||[])
+    .filter(i => !currentDetail.skip.includes(i));
+  if (rawItems.length === 0) { toast('Nothing to add — all items skipped.'); return; }
+
+  // Auto-match each ingredient to a real Woolies SKU
+  const products = await loadAllProducts();
+  indexProducts(products);
+  const items = rawItems.map(name => {
+    const p = matchIngredientToSKU(name, products);
+    return p ? { name, sku: String(p.sku), qty: 1 } : { name, qty: 1 };
+  });
+
   cart = cart.filter(g => g.recipeId !== id);
   cart.push({
     recipeId: id,
@@ -1165,9 +1188,25 @@ function addRecipeToCart(id, source) {
     addedAt: Date.now(),
   });
   saveCart(cart);
-  toast(`✓ ${recipeTitle(currentDetail)} added to Dash`);
+  const matched = items.filter(i => i.sku).length;
+  toast(`✓ ${recipeTitle(currentDetail)} added · ${matched}/${items.length} matched to SKUs`);
   updateCartCount();
   setTimeout(() => show('cart'), 600);
+}
+
+/* Qty stepper for recipe-line items (matched SKUs). Removes item at 0,
+   removes the whole group if last item gone. */
+function changeRecipeItem(recipeId, idx, delta) {
+  const g = cart.find(x => x.recipeId === recipeId);
+  if (!g) return;
+  const it = g.items[idx];
+  if (!it) return;
+  it.qty = (it.qty || 1) + delta;
+  if (it.qty <= 0) g.items.splice(idx, 1);
+  if (g.items.length === 0) cart = cart.filter(x => x.recipeId !== recipeId);
+  saveCart(cart);
+  updateCartCount();
+  renderCart();
 }
 
 /* ============================================================
@@ -1409,13 +1448,21 @@ function renderCart() {
     });
   });
 
-  const recipeItems = cart.reduce((s, g) => s + g.items.length, 0);
+  const recipeItems = cart.reduce((s, g) => s + g.items.reduce((n, it) => n + (it.qty || 1), 0), 0);
   const looseItems = loose.reduce((s, x) => s + x.qty, 0);
   const total = recipeItems + looseItems;
   const looseSubtotal = loose.reduce((s, x) => {
     const p = productBySku(x.sku);
     return s + (p ? p.price * x.qty : 0);
   }, 0);
+  const recipeSubtotal = cart.reduce((s, g) => {
+    return s + g.items.reduce((n, it) => {
+      const p = it.sku ? productBySku(it.sku) : null;
+      return n + (p ? p.price * (it.qty || 1) : 0);
+    }, 0);
+  }, 0);
+  const productsSubtotal = looseSubtotal + recipeSubtotal;
+  const unmatchedRecipeItems = cart.reduce((s, g) => s + g.items.filter(it => !it.sku).length, 0);
 
   document.getElementById('cart-sub').textContent =
     `${total} item${total===1?'':'s'} · ${cart.length} recipe${cart.length===1?'':'s'} + ${loose.length} loose`;
@@ -1434,7 +1481,7 @@ function renderCart() {
         if (!p) return `<div class="cart-item"><div class="name" style="color:var(--muted)">Loading SKU ${escapeHTML(x.sku)}…</div></div>`;
         return `
         <div class="cart-item">
-          <div style="width:28px;height:28px;border-radius:6px;overflow:hidden;background:var(--bg);margin-right:8px;flex-shrink:0">${productImg(p)}</div>
+          <div class="thumb">${productImg(p)}</div>
           <div class="name">${escapeHTML(p.name)}<div style="font-size:11.5px;color:var(--muted);font-weight:400">${escapeHTML(p.unit||'')}</div></div>
           <div class="p-qty small">
             <button onclick="changeLoose('${p.sku}', -1)">−</button>
@@ -1451,28 +1498,62 @@ function renderCart() {
     const img = g.recipeImage && /^https?:/.test(g.recipeImage)
       ? `<img src="${escapeAttr(g.recipeImage)}" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🍽',className:'emoji'}))">`
       : `<span class="emoji">${g.recipeImage || '🍽'}</span>`;
+    const groupSubtotal = g.items.reduce((n, it) => {
+      const p = it.sku ? productBySku(it.sku) : null;
+      return n + (p ? p.price * (it.qty || 1) : 0);
+    }, 0);
+    const matchedCount = g.items.filter(it => it.sku && productBySku(it.sku)).length;
     return `
       <div class="cart-recipe-group">
         <div class="group-h">
           ${img}
           <div class="info">
             <h4>${escapeHTML(g.recipeTitle || g.recipeId)}</h4>
-            <div class="sub">${g.items.length} ingredients</div>
+            <div class="sub">${matchedCount}/${g.items.length} matched · R ${groupSubtotal.toFixed(2)}</div>
           </div>
           <button class="remove" onclick="removeRecipeFromCart('${g.recipeId}')">Remove</button>
         </div>
-        ${g.items.map(it => {
-          const dup = agg.get(it.name.toLowerCase())?.sources.length > 1;
-          return `<div class="cart-item">
-            <div class="name">${escapeHTML(it.name)}</div>
-            ${dup ? `<span class="from">×${agg.get(it.name.toLowerCase()).sources.length}</span>` : ''}
-          </div>`;
+        ${g.items.map((it, idx) => {
+          const p = it.sku ? productBySku(it.sku) : null;
+          const qty = it.qty || 1;
+          if (p) {
+            return `
+              <div class="cart-item">
+                <div class="thumb">${productImg(p)}</div>
+                <div class="name" style="min-width:0;flex:1">
+                  <div style="font-size:13px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHTML(p.name)}</div>
+                  <div style="font-size:10.5px;color:var(--muted);font-weight:400;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHTML(p.unit||'')} · for ${escapeHTML(it.name)}</div>
+                </div>
+                <div class="p-qty small" style="margin-left:6px;flex-shrink:0">
+                  <button onclick="changeRecipeItem('${g.recipeId}', ${idx}, -1)">−</button>
+                  <span>${qty}</span>
+                  <button onclick="changeRecipeItem('${g.recipeId}', ${idx}, 1)">+</button>
+                </div>
+                <div style="font-weight:700;font-size:13px;margin-left:8px;min-width:56px;text-align:right;flex-shrink:0">R ${(p.price*qty).toFixed(2)}</div>
+              </div>`;
+          }
+          // Unmatched — render compact "ask at till" line
+          return `
+            <div class="cart-item">
+              <div class="thumb">?</div>
+              <div class="name" style="min-width:0;flex:1">
+                <div style="font-size:13px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHTML(it.name)}</div>
+                <div style="font-size:10.5px;color:var(--muted);font-weight:400;margin-top:2px">no SKU match · runner picks at till</div>
+              </div>
+              <div class="p-qty small" style="margin-left:6px;flex-shrink:0">
+                <button onclick="changeRecipeItem('${g.recipeId}', ${idx}, -1)">−</button>
+                <span>${qty}</span>
+                <button onclick="changeRecipeItem('${g.recipeId}', ${idx}, 1)">+</button>
+              </div>
+              <div style="font-weight:700;font-size:11.5px;color:var(--muted);margin-left:8px;min-width:56px;text-align:right;flex-shrink:0">at till</div>
+            </div>`;
         }).join('')}
       </div>`;
   }).join('');
 
-  // If any loose items are unrendered SKUs, load products and re-render
-  if (loose.some(x => !productBySku(x.sku)) && !LOADED_ALL_PRODUCTS) {
+  // If any items reference SKUs we haven't loaded yet, load and re-render
+  const allSkus = [...loose.map(x => x.sku), ...cart.flatMap(g => g.items.filter(it=>it.sku).map(it=>it.sku))];
+  if (allSkus.some(s => s && !productBySku(s)) && !LOADED_ALL_PRODUCTS) {
     loadAllProducts().then(prods => { indexProducts(prods); renderCart(); });
   }
 
@@ -1481,9 +1562,9 @@ function renderCart() {
     ${looseHTML}
     ${groups}
     <div class="cart-summary">
-      <div class="row total" id="grand-total"><span class="label">${total} item${total===1?'':'s'} in basket</span><span class="value">R ${(looseSubtotal + courierFee()).toFixed(2)}</span></div>
-      ${loose.length ? `<div class="row"><span class="muted">${loose.length} product${loose.length===1?'':'s'} from shelf</span><span>R ${looseSubtotal.toFixed(2)}</span></div>` : ''}
-      ${recipeItems ? `<div class="row"><span class="muted">${recipeItems} recipe ingredient${recipeItems===1?'':'s'} to shop</span><span style="color:var(--muted);font-size:12px">priced at till</span></div>` : ''}
+      <div class="row total" id="grand-total"><span class="label">${total} item${total===1?'':'s'} in basket</span><span class="value">R ${(productsSubtotal + courierFee()).toFixed(2)}</span></div>
+      <div class="row"><span class="muted">Products subtotal</span><span>R ${productsSubtotal.toFixed(2)}</span></div>
+      ${unmatchedRecipeItems ? `<div class="row"><span class="muted">${unmatchedRecipeItems} item${unmatchedRecipeItems===1?'':'s'} priced at till</span><span style="color:var(--muted);font-size:12px">runner picks</span></div>` : ''}
       <div class="row"><span class="muted" id="courier-row-label">Delivery · Woolies Dash</span><span id="courier-row-fee">R 35</span></div>
     </div>
 
@@ -1605,13 +1686,18 @@ function renderCourierTotal() {
     const p = productBySku(x.sku);
     return s + (p ? p.price * x.qty : 0);
   }, 0);
-  const recipeItems = cart.reduce((s, g) => s + g.items.length, 0);
+  const recipeSubtotal = cart.reduce((s, g) => s + g.items.reduce((n, it) => {
+    const p = it.sku ? productBySku(it.sku) : null;
+    return n + (p ? p.price * (it.qty || 1) : 0);
+  }, 0), 0);
+  const productsSubtotal = looseSubtotal + recipeSubtotal;
+  const recipeItems = cart.reduce((s, g) => s + g.items.reduce((n, it) => n + (it.qty || 1), 0), 0);
   const looseCount = loadLooseCart().reduce((s, x) => s + x.qty, 0);
   const totalItems = recipeItems + looseCount;
   const grand = document.getElementById('grand-total');
   if (grand) {
     grand.querySelector('.label').textContent = `${totalItems} item${totalItems===1?'':'s'} in basket`;
-    grand.querySelector('.value').textContent = `R ${(looseSubtotal + feeNum).toFixed(2)}`;
+    grand.querySelector('.value').textContent = `R ${(productsSubtotal + feeNum).toFixed(2)}`;
   }
   const cl = document.getElementById('courier-row-label');
   const cf = document.getElementById('courier-row-fee');
