@@ -541,6 +541,55 @@
     background: var(--bg); padding: 2px 7px; border-radius: 999px;
   }
 
+  /* Cookbook A-Z index */
+  .cb-index {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 2px;
+    margin: 4px 4px 12px;
+    padding: 8px 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cb-index::-webkit-scrollbar { display: none; }
+  .cb-index button {
+    flex: 0 0 auto;
+    min-width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--green);
+    font: inherit; font-weight: 700; font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0 6px;
+  }
+  .cb-index button:hover { background: var(--green-soft); }
+  .cb-index button.muted {
+    color: var(--line);
+    cursor: default;
+    pointer-events: none;
+  }
+  .cb-section-h {
+    margin: 18px 4px 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--green);
+    font-size: 15px; font-weight: 800;
+    color: var(--green);
+    letter-spacing: -0.2px;
+    display: flex; align-items: baseline; justify-content: space-between;
+    scroll-margin-top: 8px;
+  }
+  .cb-section-h .count {
+    font-size: 11.5px; font-weight: 600; color: var(--muted);
+    letter-spacing: 0;
+  }
   .cart-item .thumb {
     width: 36px; height: 36px;
     border-radius: 6px;
@@ -723,6 +772,12 @@
       <h2>Your Cookbook</h2>
       <p id="cookbook-sub">Every dish you've saved.</p>
     </div>
+    <div class="search-wrap" id="cb-search-bar" style="margin-bottom:6px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="cb-q" placeholder="Search the cookbook…" oninput="renderCookbook()" autocomplete="off">
+      <button class="clear" onclick="document.getElementById('cb-q').value='';renderCookbook()">×</button>
+    </div>
+    <div id="cb-index-strip" class="cb-index"></div>
     <div class="recipe-list" id="cookbook-list"></div>
   </main>
 
@@ -1079,14 +1134,104 @@ async function renderHome() {
 async function renderCookbook() {
   const sub = document.getElementById('cookbook-sub');
   const list = document.getElementById('cookbook-list');
-  list.innerHTML = `<div class="loading-shimmer">Loading 2,383 recipes</div>`;
+  const strip = document.getElementById('cb-index-strip');
+  const q = (document.getElementById('cb-q')?.value || '').trim().toLowerCase();
+
+  if (!LOADED_ALL_RECIPES) {
+    list.innerHTML = `<div class="loading-shimmer">Loading 2,383 recipes</div>`;
+    strip.innerHTML = '';
+  }
   const all = await loadAllRecipes();
   const combined = [...userRecipes, ...all];
-  sub.textContent = `${combined.length.toLocaleString()} recipes — ${userRecipes.length} yours, ${all.length.toLocaleString()} from Woolies.`;
-  list.innerHTML = combined.length === 0
-    ? emptyHTML('Your cookbook is empty', 'Add a recipe with the + button.')
-    : combined.slice(0, 200).map(r => recipeCardHTML(r)).join('')
-      + (combined.length > 200 ? `<p style="text-align:center;color:var(--muted);font-size:12px;margin-top:14px">Showing 200 of ${combined.length.toLocaleString()} — use Search to find more.</p>` : '');
+
+  // FILTER
+  let filtered = combined;
+  if (q) {
+    const words = q.split(/\s+/).filter(w => w.length > 1);
+    filtered = combined.filter(r => {
+      const hay = `${recipeTitle(r)} ${(r.ingredients||[]).join(' ')} ${r.author||''} ${(r.tags||[]).join(' ')}`.toLowerCase();
+      return words.every(w => hay.includes(w));
+    });
+  }
+
+  sub.textContent = q
+    ? `${filtered.length.toLocaleString()} of ${combined.length.toLocaleString()} match "${q}"`
+    : `${combined.length.toLocaleString()} recipes — ${userRecipes.length} yours, ${all.length.toLocaleString()} from Woolies.`;
+
+  if (filtered.length === 0) {
+    strip.innerHTML = '';
+    list.innerHTML = emptyHTML('No matches', q ? `Nothing for "${escapeHTML(q)}". Try a different word.` : 'Add a recipe with the + button.');
+    return;
+  }
+
+  // BUCKET BY FIRST LETTER (A-Z + #)
+  const buckets = new Map();
+  const userBucket = [];
+  for (const r of filtered) {
+    if (r.source === 'user' || !r.source) {
+      userBucket.push(r);
+      continue;
+    }
+    const t = recipeTitle(r).trim();
+    let key = (t[0] || '#').toUpperCase();
+    if (!/[A-Z]/.test(key)) key = '#';
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(r);
+  }
+  // Sort each bucket alphabetically by title
+  for (const arr of buckets.values()) arr.sort((a,b) => recipeTitle(a).localeCompare(recipeTitle(b)));
+
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const presentLetters = new Set([...buckets.keys()]);
+
+  // INDEX STRIP
+  const stripItems = [];
+  if (userBucket.length) stripItems.push(`<button onclick="jumpToSection('user')" title="Your recipes">★</button>`);
+  for (const L of letters) {
+    if (presentLetters.has(L)) stripItems.push(`<button onclick="jumpToSection('${L}')">${L}</button>`);
+    else stripItems.push(`<button class="muted">${L}</button>`);
+  }
+  if (presentLetters.has('#')) stripItems.push(`<button onclick="jumpToSection('hash')" title="Other">#</button>`);
+  strip.innerHTML = stripItems.join('');
+
+  // SECTIONS — render up to a cap per section to keep DOM manageable
+  const CAP = 60;
+  const sections = [];
+  if (userBucket.length) {
+    sections.push(`
+      <h3 class="cb-section-h" id="cb-sec-user">★ Yours <span class="count">${userBucket.length}</span></h3>
+      <div class="recipe-list">${userBucket.slice(0, CAP).map(r => recipeCardHTML(r)).join('')}</div>
+    `);
+  }
+  for (const L of letters) {
+    const arr = buckets.get(L);
+    if (!arr) continue;
+    const more = arr.length > CAP ? `<p style="text-align:center;color:var(--muted);font-size:11.5px;margin:4px 0">+ ${arr.length - CAP} more under ${L} — search to narrow.</p>` : '';
+    sections.push(`
+      <h3 class="cb-section-h" id="cb-sec-${L}">${L} <span class="count">${arr.length}</span></h3>
+      <div class="recipe-list">${arr.slice(0, CAP).map(r => recipeCardHTML(r)).join('')}</div>
+      ${more}
+    `);
+  }
+  const hashArr = buckets.get('#');
+  if (hashArr) {
+    sections.push(`
+      <h3 class="cb-section-h" id="cb-sec-hash"># <span class="count">${hashArr.length}</span></h3>
+      <div class="recipe-list">${hashArr.slice(0, CAP).map(r => recipeCardHTML(r)).join('')}</div>
+    `);
+  }
+
+  list.innerHTML = sections.join('');
+}
+
+function jumpToSection(key) {
+  const id = key === 'user' ? 'cb-sec-user' : key === 'hash' ? 'cb-sec-hash' : `cb-sec-${key}`;
+  const el = document.getElementById(id);
+  const screen = document.getElementById('screen-cookbook');
+  if (!el || !screen) return;
+  // Scroll the screen container so the section sits at the top
+  const targetTop = el.offsetTop - 8;
+  screen.scrollTo({ top: targetTop, behavior: 'smooth' });
 }
 
 async function openRecipe(id, source) {
