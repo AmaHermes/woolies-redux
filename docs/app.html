@@ -554,10 +554,14 @@
     font-size: 14px;
   }
   .cart-summary .row.total {
-    border-top: 1px solid var(--line);
-    margin-top: 6px; padding-top: 12px;
-    font-weight: 800; font-size: 16px;
+    border-top: none;
+    border-bottom: 1px solid var(--line);
+    margin-top: 0; margin-bottom: 6px;
+    padding-top: 4px; padding-bottom: 12px;
+    font-weight: 800; font-size: 17px;
+    letter-spacing: -0.2px;
   }
+  .cart-summary .row.total .value { color: var(--green); }
   .cart-summary .muted { color: var(--muted); }
 
   /* Add recipe form */
@@ -1477,9 +1481,10 @@ function renderCart() {
     ${looseHTML}
     ${groups}
     <div class="cart-summary">
-      <div class="row"><span class="muted">Products subtotal</span><span>R ${looseSubtotal.toFixed(2)}</span></div>
-      <div class="row"><span class="muted">Recipe ingredient items</span><span>${recipeItems}</span></div>
-      <div class="row total"><span>Items in basket</span><span>${total}</span></div>
+      <div class="row total" id="grand-total"><span class="label">${total} item${total===1?'':'s'} in basket</span><span class="value">R ${(looseSubtotal + courierFee()).toFixed(2)}</span></div>
+      ${loose.length ? `<div class="row"><span class="muted">${loose.length} product${loose.length===1?'':'s'} from shelf</span><span>R ${looseSubtotal.toFixed(2)}</span></div>` : ''}
+      ${recipeItems ? `<div class="row"><span class="muted">${recipeItems} recipe ingredient${recipeItems===1?'':'s'} to shop</span><span style="color:var(--muted);font-size:12px">priced at till</span></div>` : ''}
+      <div class="row"><span class="muted" id="courier-row-label">Delivery · Woolies Dash</span><span id="courier-row-fee">R 35</span></div>
     </div>
 
     <div class="section-h" style="margin-top:18px"><h3>Choose your runner</h3></div>
@@ -1592,7 +1597,30 @@ function checkoutDash() {
 function renderCourierTotal() {
   const c = document.querySelector('input[name="courier"]:checked')?.value || 'dash';
   const fee = { dash: '+ R 35', scoot: '+ R 20', pickup: 'Free' }[c];
+  const feeNum = { dash: 35, scoot: 20, pickup: 0 }[c];
+  const label = { dash: 'Woolies Dash', scoot: 'ScootShop indie runner', pickup: 'Click & collect' }[c];
   document.getElementById('checkout-fee').textContent = fee;
+  // Update summary in place so the grand total tracks the courier without wiping radio state
+  const looseSubtotal = loadLooseCart().reduce((s, x) => {
+    const p = productBySku(x.sku);
+    return s + (p ? p.price * x.qty : 0);
+  }, 0);
+  const recipeItems = cart.reduce((s, g) => s + g.items.length, 0);
+  const looseCount = loadLooseCart().reduce((s, x) => s + x.qty, 0);
+  const totalItems = recipeItems + looseCount;
+  const grand = document.getElementById('grand-total');
+  if (grand) {
+    grand.querySelector('.label').textContent = `${totalItems} item${totalItems===1?'':'s'} in basket`;
+    grand.querySelector('.value').textContent = `R ${(looseSubtotal + feeNum).toFixed(2)}`;
+  }
+  const cl = document.getElementById('courier-row-label');
+  const cf = document.getElementById('courier-row-fee');
+  if (cl) cl.textContent = `Delivery · ${label}`;
+  if (cf) cf.textContent = feeNum === 0 ? 'Free' : `R ${feeNum}`;
+}
+function courierFee() {
+  const c = document.querySelector('input[name="courier"]:checked')?.value || 'dash';
+  return { dash: 35, scoot: 20, pickup: 0 }[c];
 }
 
 /* ============================================================
