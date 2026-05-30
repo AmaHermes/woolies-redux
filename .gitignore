@@ -1,7 +1,11 @@
 .DS_Store
 node_modules/
 *.log
+
+# Raw scraper output — sharded versions live in docs/data/
 scraper/recipes.json
+scraper/products.json
 scraper/discovered_ids.json
 scraper/discover.log
 scraper/extract_progress.json
+scraper/products_progress.json

@@ -186,6 +186,11 @@
     position: relative;
     display: grid; place-items: center;
     font-size: 48px;
+    overflow: hidden;
+  }
+  .recipe-card .img img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
   }
   .recipe-card .img .badge {
     position: absolute; top: 10px; left: 10px;
@@ -223,6 +228,11 @@
     position: relative;
     display: grid; place-items: center;
     font-size: 80px;
+    overflow: hidden;
+  }
+  .detail-hero img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
   }
   .back-btn {
     position: absolute; top: 12px; left: 12px;
@@ -336,6 +346,12 @@
     border-radius: 10px;
     display: grid; place-items: center;
     font-size: 28px;
+    overflow: hidden;
+    position: relative;
+  }
+  .product-card .p-img img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
   }
   .product-card .p-body { min-width: 0; }
   .product-card .p-name {
@@ -343,8 +359,27 @@
     overflow: hidden; text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .product-card .p-meta { font-size: 11.5px; color: var(--muted); margin: 2px 0 4px; }
+  .product-card .p-meta { font-size: 11.5px; color: var(--muted); margin: 2px 0 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .product-card .p-price { font-size: 14px; font-weight: 800; color: var(--ink); }
+  .brand-badge {
+    display: inline-block;
+    font-size: 9.5px; font-weight: 800;
+    background: var(--green); color: #fff;
+    padding: 2px 6px; border-radius: 4px;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+  .brand-badge.other { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+  .loading-shimmer {
+    text-align: center; padding: 40px 20px; color: var(--muted);
+    font-size: 13.5px;
+  }
+  .loading-shimmer::after {
+    content: ' …'; display: inline-block;
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
   .product-card .p-add {
     background: var(--green); color: #fff;
     border: none;
@@ -768,179 +803,142 @@
 
 <script>
 /* ============================================================
-   SEED RECIPES — South African / Woolies-friendly favourites
+   WOOLIES REDUX — Sharded data layer (Option B)
+   Loads ~4.4 MB across 33 product + 7 recipe shards on demand.
    ============================================================ */
-/* ============================================================
-   SEED PRODUCTS — real Woolies items (mocked prices in ZAR)
-   ============================================================ */
-const SEED_PRODUCTS = [
-  // Frozen ready meals (the spinach & feta pie lives here)
-  { id:'p-snf-pie',     name:'Spinach & Feta Filo Pies (2-pack)', cat:'Frozen ready meals', emoji:'🥧', price:79.99, unit:'320g', tags:['spinach','feta','pie','vegetarian','filo','ready meal','easy'] },
-  { id:'p-snf-quiche',  name:'Spinach & Feta Quiche',             cat:'Frozen ready meals', emoji:'🥧', price:89.99, unit:'400g', tags:['spinach','feta','quiche','vegetarian'] },
-  { id:'p-chk-pie',     name:'Free-range Chicken & Mushroom Pie', cat:'Frozen ready meals', emoji:'🥧', price:74.99, unit:'400g', tags:['chicken','mushroom','pie','easy'] },
-  { id:'p-cot-pie',     name:'Cottage Pie (single serve)',        cat:'Frozen ready meals', emoji:'🍲', price:64.99, unit:'350g', tags:['beef','potato','single','comfort','easy'] },
-  { id:'p-fish-pie',    name:'Salmon & Prawn Fish Pie',           cat:'Frozen ready meals', emoji:'🐟', price:119.99, unit:'400g', tags:['fish','salmon','prawn','pie','easy'] },
-  { id:'p-mac-cheese',  name:'Macaroni & Cheese Bake',            cat:'Frozen ready meals', emoji:'🧀', price:69.99, unit:'400g', tags:['pasta','cheese','comfort','easy'] },
-  { id:'p-lasagne',     name:'Beef Lasagne',                      cat:'Frozen ready meals', emoji:'🍝', price:84.99, unit:'400g', tags:['pasta','beef','italian','easy'] },
 
-  // Soups (good for retirement home — soft, warm, easy to eat)
-  { id:'p-soup-tom',    name:'Roasted Tomato Soup',               cat:'Soups', emoji:'🍅', price:39.99, unit:'500ml', tags:['soup','tomato','warm','soft'] },
-  { id:'p-soup-but',    name:'Butternut Soup',                    cat:'Soups', emoji:'🎃', price:39.99, unit:'500ml', tags:['soup','butternut','warm','soft'] },
-  { id:'p-soup-chk',    name:'Chicken Noodle Soup',               cat:'Soups', emoji:'🍜', price:44.99, unit:'500ml', tags:['soup','chicken','warm','soft','comfort'] },
-
-  // Bakery
-  { id:'p-bread-seed',  name:'Seed Loaf',                         cat:'Bakery', emoji:'🍞', price:34.99, unit:'700g', tags:['bread','seed','wholewheat'] },
-  { id:'p-rolls',       name:'Soft White Rolls (6-pack)',         cat:'Bakery', emoji:'🥖', price:24.99, unit:'6 pack', tags:['bread','rolls','soft'] },
-  { id:'p-croissant',   name:'All-butter Croissants (4-pack)',    cat:'Bakery', emoji:'🥐', price:54.99, unit:'4 pack', tags:['breakfast','french','butter'] },
-  { id:'p-rusks',       name:'Buttermilk Rusks',                  cat:'Bakery', emoji:'🍪', price:64.99, unit:'500g', tags:['rusks','breakfast','tea','south african'] },
-
-  // Cheese & deli
-  { id:'p-feta',        name:'Danish Feta',                       cat:'Cheese', emoji:'🧀', price:64.99, unit:'200g', tags:['feta','cheese','greek'] },
-  { id:'p-cheddar',     name:'Mature Cheddar',                    cat:'Cheese', emoji:'🧀', price:89.99, unit:'250g', tags:['cheese','cheddar'] },
-  { id:'p-mozza',       name:'Buffalo Mozzarella',                cat:'Cheese', emoji:'🧀', price:74.99, unit:'125g', tags:['cheese','mozzarella','italian'] },
-  { id:'p-burrata',     name:'Burrata',                           cat:'Cheese', emoji:'🧀', price:99.99, unit:'125g', tags:['cheese','burrata','italian'] },
-
-  // Fresh produce
-  { id:'p-spinach',     name:'Baby Spinach',                      cat:'Fresh produce', emoji:'🥬', price:29.99, unit:'200g', tags:['spinach','greens','vegetable','salad'] },
-  { id:'p-tomato',      name:'Rosa Tomatoes',                     cat:'Fresh produce', emoji:'🍅', price:34.99, unit:'250g', tags:['tomato','salad','vegetable'] },
-  { id:'p-avo',         name:'Ripe Avocados (3-pack)',            cat:'Fresh produce', emoji:'🥑', price:54.99, unit:'3 pack', tags:['avocado','vegetable'] },
-  { id:'p-bananas',     name:'Bananas',                           cat:'Fresh produce', emoji:'🍌', price:24.99, unit:'1 kg', tags:['fruit','banana','breakfast'] },
-  { id:'p-berries',     name:'Mixed Berries',                     cat:'Fresh produce', emoji:'🫐', price:79.99, unit:'250g', tags:['berries','fruit','blueberry','strawberry'] },
-
-  // Dairy & eggs
-  { id:'p-milk',        name:'Full Cream Milk',                   cat:'Dairy', emoji:'🥛', price:24.99, unit:'2L', tags:['milk','dairy'] },
-  { id:'p-eggs',        name:'Free-range Eggs (6)',               cat:'Dairy', emoji:'🥚', price:54.99, unit:'6 large', tags:['eggs','breakfast'] },
-  { id:'p-yogurt',      name:'Greek Yogurt',                      cat:'Dairy', emoji:'🥛', price:44.99, unit:'500g', tags:['yogurt','greek','breakfast','dairy'] },
-  { id:'p-butter',      name:'Salted Butter',                     cat:'Dairy', emoji:'🧈', price:64.99, unit:'500g', tags:['butter','dairy','baking'] },
-
-  // Pantry
-  { id:'p-pasta',       name:'Penne Pasta',                       cat:'Pantry', emoji:'🍝', price:24.99, unit:'500g', tags:['pasta','penne'] },
-  { id:'p-rice',        name:'Basmati Rice',                      cat:'Pantry', emoji:'🍚', price:64.99, unit:'1 kg', tags:['rice','basmati','indian'] },
-  { id:'p-olive-oil',   name:'Extra Virgin Olive Oil',            cat:'Pantry', emoji:'🫒', price:139.99, unit:'500ml', tags:['olive oil','oil','italian'] },
-  { id:'p-tomato-tin',  name:'Tinned Chopped Tomatoes',           cat:'Pantry', emoji:'🥫', price:18.99, unit:'400g', tags:['tomato','tinned','pantry'] },
-
-  // Sweet treats — good for a care home
-  { id:'p-choc',        name:'Belgian Chocolate Slab',            cat:'Sweets', emoji:'🍫', price:64.99, unit:'150g', tags:['chocolate','sweet','treat','belgian'] },
-  { id:'p-biscuits',    name:'Shortbread Biscuits',               cat:'Sweets', emoji:'🍪', price:44.99, unit:'200g', tags:['biscuits','shortbread','tea','sweet'] },
-  { id:'p-cake-carrot', name:'Carrot Cake Slice',                 cat:'Sweets', emoji:'🍰', price:34.99, unit:'120g', tags:['cake','carrot','dessert','sweet'] },
-];
-
-const SEED_RECIPES = [
-  { id:'bobotie', name:'Bobotie', emoji:'🍲', time:'1 hr 10 min', tags:['comfort','classic','family'], skip:[],
-    ingredients:[
-      '1 kg lean beef mince','2 onions, chopped','2 slices white bread',
-      '1 cup milk','2 tbsp curry powder','1 tbsp turmeric','2 tbsp chutney',
-      '2 tbsp white vinegar','50g raisins','3 large eggs','4 bay leaves','Salt & pepper'
-    ] },
-  { id:'butter-chicken', name:'Butter Chicken', emoji:'🍗', time:'45 min', tags:['curry','indian','weeknight'], skip:[],
-    ingredients:[
-      '600g chicken breast','1 tin chopped tomatoes','200ml cream','100g butter',
-      '2 onions','4 cloves garlic','1 thumb ginger','2 tbsp garam masala',
-      '1 tbsp paprika','Fresh coriander','Basmati rice','Naan bread'
-    ] },
-  { id:'tuna-pasta', name:'Tuna Pasta Bake', emoji:'🐟', time:'30 min', tags:['quick','student','pantry'], skip:[],
-    ingredients:[
-      '500g penne pasta','2 tins tuna in brine','1 jar tomato pasta sauce',
-      '200g cheddar cheese','1 onion','2 cloves garlic','Olive oil','Italian herbs'
-    ] },
-  { id:'sunday-roast', name:'Sunday Roast Chicken', emoji:'🥘', time:'1 hr 30 min', tags:['family','sunday','classic'], skip:[],
-    ingredients:[
-      '1.5 kg whole chicken','1 kg potatoes','500g baby carrots',
-      '2 lemons','1 head garlic','Fresh rosemary','Fresh thyme',
-      'Olive oil','Butter','Chicken stock'
-    ] },
-  { id:'chakalaka', name:'Chakalaka & Pap', emoji:'🌽', time:'40 min', tags:['braai','south-african','vegetarian'], skip:[],
-    ingredients:[
-      '2 onions','3 carrots','1 red pepper','1 green pepper',
-      '1 tin baked beans','1 tin chopped tomatoes','2 tbsp curry powder',
-      '500g maize meal','Salt','Sunflower oil'
-    ] },
-  { id:'thai-green', name:'Thai Green Curry', emoji:'🥥', time:'35 min', tags:['curry','thai','quick'], skip:[],
-    ingredients:[
-      '600g chicken thigh','1 tin coconut milk','3 tbsp green curry paste',
-      '1 brinjal','1 bunch baby corn','Fresh basil','Lime leaves',
-      '1 lime','Fish sauce','Brown sugar','Jasmine rice'
-    ] },
-  { id:'beef-stew', name:'Beef Potjie', emoji:'🍖', time:'3 hr', tags:['braai','slow','winter'], skip:[],
-    ingredients:[
-      '1 kg beef chuck','500g baby potatoes','3 carrots','2 onions',
-      '1 cup red wine','2 cups beef stock','3 cloves garlic',
-      'Bay leaves','Worcestershire sauce','Tomato paste'
-    ] },
-  { id:'greek-salad', name:'Greek Salad', emoji:'🥗', time:'15 min', tags:['summer','quick','no-cook'], skip:['Salt & pepper'],
-    ingredients:[
-      '4 large tomatoes','1 cucumber','1 red onion','200g feta cheese',
-      '1 cup kalamata olives','Olive oil','Dried oregano','Lemon','Salt & pepper'
-    ] },
-  { id:'breakfast', name:'Big Weekend Breakfast', emoji:'🍳', time:'25 min', tags:['breakfast','weekend'], skip:[],
-    ingredients:[
-      '8 eggs','500g back bacon','6 pork sausages','4 tomatoes',
-      '200g mushrooms','1 loaf sourdough','Butter','Baked beans'
-    ] },
-  { id:'pizza-night', name:'Friday Night Pizza', emoji:'🍕', time:'45 min', tags:['family','friday'], skip:[],
-    ingredients:[
-      '500g pizza flour','1 sachet yeast','1 jar pizza sauce',
-      '300g mozzarella','100g pepperoni','Fresh basil',
-      '1 ball burrata','Olive oil'
-    ] },
-];
+const DATA_BASE = 'data/';
+const MANIFEST_URL = DATA_BASE + 'manifest.json';
 
 /* ============================================================
    STATE — localStorage backed
    ============================================================ */
-const STORE_RECIPES = 'wc.recipes.v1';
-const STORE_CART = 'wc.cart.v1';
-const STORE_LOOSE = 'wc.loose.v1';
+const STORE_USER_RECIPES = 'wc.userRecipes.v2';   // user-authored recipes only
+const STORE_CART = 'wc.cart.v2';                  // bumped: skuId not p-xxx
+const STORE_LOOSE = 'wc.loose.v2';
 const STORE_ADDR = 'wc.addr.v1';
 
-function loadRecipes() {
-  const raw = localStorage.getItem(STORE_RECIPES);
-  if (raw) try { return JSON.parse(raw); } catch {}
-  localStorage.setItem(STORE_RECIPES, JSON.stringify(SEED_RECIPES));
-  return [...SEED_RECIPES];
+let MANIFEST = null;
+const PRODUCT_CACHE = new Map();   // slug -> array
+const RECIPE_CACHE = new Map();    // bucket -> array
+let ALL_PRODUCTS = [];             // populated on first full sweep
+let ALL_RECIPES_REAL = [];         // populated on first full sweep
+let LOADED_ALL_PRODUCTS = false;
+let LOADED_ALL_RECIPES = false;
+let currentDetail = null;
+
+/* ============================================================
+   SHARD LOADER
+   ============================================================ */
+async function loadManifest() {
+  if (MANIFEST) return MANIFEST;
+  const res = await fetch(MANIFEST_URL, { cache: 'force-cache' });
+  if (!res.ok) throw new Error('manifest fetch failed');
+  MANIFEST = await res.json();
+  return MANIFEST;
 }
-function saveRecipes(r) { localStorage.setItem(STORE_RECIPES, JSON.stringify(r)); }
+
+async function loadProductShard(slug) {
+  if (PRODUCT_CACHE.has(slug)) return PRODUCT_CACHE.get(slug);
+  const m = await loadManifest();
+  const shard = m.products.shards.find(s => s.slug === slug);
+  if (!shard) return [];
+  const res = await fetch(shard.file, { cache: 'force-cache' });
+  const slim = await res.json();
+  // Expand slim {s,n,p,u,i,b} -> {sku,name,price,unit,image,brand,cat}
+  const expanded = slim.map(x => ({
+    sku: x.s, name: x.n, price: x.p, unit: x.u,
+    image: x.i, brand: x.b, cat: shard.cat,
+  }));
+  PRODUCT_CACHE.set(slug, expanded);
+  return expanded;
+}
+
+async function loadRecipeBucket(bucket) {
+  if (RECIPE_CACHE.has(bucket)) return RECIPE_CACHE.get(bucket);
+  const m = await loadManifest();
+  const shard = m.recipes.shards.find(s => s.bucket === bucket);
+  if (!shard) return [];
+  const res = await fetch(shard.file, { cache: 'force-cache' });
+  const slim = await res.json();
+  const expanded = slim.map(x => ({
+    id: x.i, title: x.t, author: x.a, image: x.im,
+    ingredients: x.ing || [], steps: x.st || [],
+    source: 'woolies',
+  }));
+  RECIPE_CACHE.set(bucket, expanded);
+  return expanded;
+}
+
+async function loadAllProducts() {
+  if (LOADED_ALL_PRODUCTS) return ALL_PRODUCTS;
+  const m = await loadManifest();
+  const shards = await Promise.all(m.products.shards.map(s => loadProductShard(s.slug)));
+  ALL_PRODUCTS = shards.flat();
+  LOADED_ALL_PRODUCTS = true;
+  return ALL_PRODUCTS;
+}
+
+async function loadAllRecipes() {
+  if (LOADED_ALL_RECIPES) return ALL_RECIPES_REAL;
+  const m = await loadManifest();
+  const shards = await Promise.all(m.recipes.shards.map(s => loadRecipeBucket(s.bucket)));
+  ALL_RECIPES_REAL = shards.flat();
+  LOADED_ALL_RECIPES = true;
+  return ALL_RECIPES_REAL;
+}
+
+/* SKU index for cart lookups (built once products are loaded) */
+const SKU_INDEX = new Map();
+function indexProducts(prods) {
+  for (const p of prods) SKU_INDEX.set(String(p.sku), p);
+}
+function productBySku(sku) { return SKU_INDEX.get(String(sku)); }
+
+/* ============================================================
+   USER STATE (recipes user authored + cart + addresses)
+   ============================================================ */
+function loadUserRecipes() {
+  try { return JSON.parse(localStorage.getItem(STORE_USER_RECIPES) || '[]'); }
+  catch { return []; }
+}
+function saveUserRecipes(r) { localStorage.setItem(STORE_USER_RECIPES, JSON.stringify(r)); }
+
 function loadCart() {
   try { return JSON.parse(localStorage.getItem(STORE_CART) || '[]'); } catch { return []; }
 }
 function saveCart(c) { localStorage.setItem(STORE_CART, JSON.stringify(c)); }
 
-/* Loose items (products added directly, not from recipes) */
 function loadLooseCart() { try { return JSON.parse(localStorage.getItem(STORE_LOOSE) || '[]'); } catch { return []; } }
 function saveLooseCart(c) { localStorage.setItem(STORE_LOOSE, JSON.stringify(c)); }
-function addLoose(productId) {
-  const p = SEED_PRODUCTS.find(x => x.id === productId);
+
+function addLoose(sku) {
+  const p = productBySku(sku);
   if (!p) return;
   const loose = loadLooseCart();
-  const ex = loose.find(x => x.id === productId);
-  if (ex) ex.qty += 1; else loose.push({ id: productId, qty: 1 });
+  const ex = loose.find(x => x.sku === sku);
+  if (ex) ex.qty += 1; else loose.push({ sku, qty: 1 });
   saveLooseCart(loose);
   toast(`✓ ${p.name} added`);
   updateCartCount();
   runSearch();
 }
-function changeLoose(productId, delta) {
+function changeLoose(sku, delta) {
   let loose = loadLooseCart();
-  const ex = loose.find(x => x.id === productId);
+  const ex = loose.find(x => x.sku === sku);
   if (!ex) return;
   ex.qty += delta;
-  if (ex.qty <= 0) loose = loose.filter(x => x.id !== productId);
+  if (ex.qty <= 0) loose = loose.filter(x => x.sku !== sku);
   saveLooseCart(loose);
   updateCartCount();
-  // re-render whichever screen is visible
   if (!document.getElementById('screen-search').classList.contains('hidden')) runSearch();
   if (!document.getElementById('screen-cart').classList.contains('hidden')) renderCart();
 }
 
-/* Address book */
-function loadAddresses() {
-  try { return JSON.parse(localStorage.getItem(STORE_ADDR) || '[]'); } catch { return []; }
-}
+/* Address book — unchanged from v1 */
+function loadAddresses() { try { return JSON.parse(localStorage.getItem(STORE_ADDR) || '[]'); } catch { return []; } }
 function saveAddresses(a) { localStorage.setItem(STORE_ADDR, JSON.stringify(a)); }
-function getActiveAddress() {
-  const all = loadAddresses();
-  return all.find(a => a.active) || all[0] || null;
-}
+function getActiveAddress() { const all = loadAddresses(); return all.find(a => a.active) || all[0] || null; }
 function setActiveAddress(id) {
   const all = loadAddresses().map(a => ({ ...a, active: a.id === id }));
   saveAddresses(all);
@@ -957,9 +955,8 @@ function removeAddress(id) {
   renderCart();
 }
 
-let recipes = loadRecipes();
-let cart = loadCart(); // [{recipeId, items: [{name, qty}]}]
-let currentDetail = null;
+let userRecipes = loadUserRecipes();
+let cart = loadCart();
 
 /* ============================================================
    ROUTING
@@ -971,9 +968,7 @@ function show(name) {
   document.querySelectorAll('.tab').forEach(t => {
     t.classList.toggle('active', t.dataset.tab === name || (name === 'add' && t.dataset.tab === 'cookbook'));
   });
-  // hide FAB on detail/add/cart/addr screens
   document.getElementById('fab').style.display = ['add','detail','cart','addr'].includes(name) ? 'none' : 'grid';
-  // scroll top
   target?.scrollTo(0, 0);
   if (name === 'home') renderHome();
   if (name === 'cookbook') renderCookbook();
@@ -1021,73 +1016,119 @@ function saveAddressFromForm() {
 /* ============================================================
    RENDERING
    ============================================================ */
+function recipeImg(r) {
+  // user recipes use emoji, real woolies recipes use image url
+  if (r.image && /^https?:/.test(r.image)) {
+    return `<img loading="lazy" src="${escapeAttr(r.image)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🍽'}))">`;
+  }
+  return r.emoji || '🍽';
+}
+function recipeTitle(r) { return r.title || r.name || 'Untitled'; }
+function recipeIngCount(r) { return (r.ingredients || []).length; }
+function recipeMetaTime(r) { return r.time || (r.author ? `by ${r.author}` : '—'); }
+
 function recipeCardHTML(r, opts = {}) {
   const badge = opts.badge ? `<div class="badge">${opts.badge}</div>` : '';
   return `
-    <article class="recipe-card" onclick="openRecipe('${r.id}')">
-      <div class="img">${badge}${r.emoji || '🍽'}</div>
+    <article class="recipe-card" onclick="openRecipe('${r.id}', '${r.source || 'user'}')">
+      <div class="img">${badge}${recipeImg(r)}</div>
       <div class="body">
-        <h4>${escapeHTML(r.name)}</h4>
+        <h4>${escapeHTML(recipeTitle(r))}</h4>
         <div class="meta">
-          <span>⏱ ${escapeHTML(r.time || '—')}</span>
-          <span>🧂 ${r.ingredients.length} items</span>
+          <span>⏱ ${escapeHTML(recipeMetaTime(r))}</span>
+          <span>🧂 ${recipeIngCount(r)} items</span>
         </div>
       </div>
     </article>`;
 }
 
-function renderHome() {
-  const favs = recipes.slice(0, 5);
-  const quick = recipes.filter(r => r.tags?.some(t => ['quick','weeknight','student','breakfast'].includes(t)));
-  document.getElementById('favs-scroll').innerHTML =
-    favs.map(r => recipeCardHTML(r, { badge: 'Saved' })).join('') || emptyHTML('Nothing saved yet', 'Tap + to add your first recipe.');
-  document.getElementById('quick-scroll').innerHTML =
-    quick.map(r => recipeCardHTML(r)).join('') || '';
+async function renderHome() {
+  document.getElementById('favs-scroll').innerHTML = `<div class="loading-shimmer">Loading recipes</div>`;
+  document.getElementById('quick-scroll').innerHTML = '';
   updateCartCount();
+  // First impression: load a-c bucket only — fast, gets us ~760 real recipes
+  const firstBucket = await loadRecipeBucket('a-c');
+  const all = [...userRecipes, ...firstBucket];
+  const favs = userRecipes.length ? userRecipes.slice(0, 5) : all.slice(0, 8);
+  const quick = all.filter(r => recipeIngCount(r) > 0 && recipeIngCount(r) <= 8).slice(0, 10);
+  document.getElementById('favs-scroll').innerHTML =
+    favs.map(r => recipeCardHTML(r, { badge: userRecipes.length ? 'Saved' : 'Featured' })).join('')
+    || emptyHTML('No recipes yet', 'Try search or tap + to add your own.');
+  document.getElementById('quick-scroll').innerHTML = quick.map(r => recipeCardHTML(r)).join('');
 }
 
-function renderCookbook() {
-  document.getElementById('cookbook-sub').textContent = `${recipes.length} recipe${recipes.length===1?'':'s'} saved.`;
-  document.getElementById('cookbook-list').innerHTML =
-    recipes.length === 0
-      ? emptyHTML('Your cookbook is empty', 'Add a recipe with the + button.')
-      : recipes.map(r => recipeCardHTML(r)).join('');
+async function renderCookbook() {
+  const sub = document.getElementById('cookbook-sub');
+  const list = document.getElementById('cookbook-list');
+  list.innerHTML = `<div class="loading-shimmer">Loading 2,383 recipes</div>`;
+  const all = await loadAllRecipes();
+  const combined = [...userRecipes, ...all];
+  sub.textContent = `${combined.length.toLocaleString()} recipes — ${userRecipes.length} yours, ${all.length.toLocaleString()} from Woolies.`;
+  list.innerHTML = combined.length === 0
+    ? emptyHTML('Your cookbook is empty', 'Add a recipe with the + button.')
+    : combined.slice(0, 200).map(r => recipeCardHTML(r)).join('')
+      + (combined.length > 200 ? `<p style="text-align:center;color:var(--muted);font-size:12px;margin-top:14px">Showing 200 of ${combined.length.toLocaleString()} — use Search to find more.</p>` : '');
 }
 
-function openRecipe(id) {
-  const r = recipes.find(x => x.id === id);
-  if (!r) return;
+async function openRecipe(id, source) {
+  let r;
+  if (source === 'user' || !source) {
+    r = userRecipes.find(x => x.id === id);
+  }
+  if (!r) {
+    // search loaded buckets first, then load all if needed
+    for (const arr of RECIPE_CACHE.values()) {
+      r = arr.find(x => x.id === id);
+      if (r) break;
+    }
+    if (!r) {
+      const all = await loadAllRecipes();
+      r = all.find(x => x.id === id);
+    }
+  }
+  if (!r) { toast('Recipe not found'); return; }
   currentDetail = { ...r, skip: [...(r.skip || [])] };
   const screen = document.getElementById('screen-detail');
+  const title = recipeTitle(r);
+  const tagsHTML = (r.tags || []).map(t => `<span class="tag">${escapeHTML(t)}</span>`).join('');
   screen.innerHTML = `
     <div class="detail-hero">
       <button class="back-btn" onclick="show('cookbook')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      ${r.emoji || '🍽'}
+      ${recipeImg(r)}
     </div>
     <div class="detail-meta">
-      <h2>${escapeHTML(r.name)}</h2>
-      <div class="tags">${(r.tags||[]).map(t => `<span class="tag">${escapeHTML(t)}</span>`).join('')}</div>
-      <div class="meta"><span>⏱ ${escapeHTML(r.time || '—')}</span><span>🧂 ${r.ingredients.length} ingredients</span></div>
+      <h2>${escapeHTML(title)}</h2>
+      ${tagsHTML ? `<div class="tags">${tagsHTML}</div>` : ''}
+      <div class="meta">
+        <span>⏱ ${escapeHTML(recipeMetaTime(r))}</span>
+        <span>🧂 ${recipeIngCount(r)} ingredients</span>
+      </div>
     </div>
     <div class="ingredients">
       <div class="header">
         <h3>Shopping list</h3>
         <span class="count">Tap to skip items you already have</span>
       </div>
-      ${r.ingredients.map((ing,i) => `
+      ${(r.ingredients||[]).map(ing => `
         <div class="ingredient ${currentDetail.skip.includes(ing)?'skip':''}" onclick="toggleSkip('${escapeAttr(ing)}', this)">
           <div class="check">✓</div>
           <div class="name">${escapeHTML(ing)}</div>
         </div>
       `).join('')}
     </div>
+    <div style="display:grid;gap:10px;margin:14px 4px 6px">
+      <button class="cta-btn ghost" onclick="findProductsForRecipe('${r.id}')">
+        🔍 Find Woolies products for this recipe
+      </button>
+    </div>
+    <div id="recipe-matches" style="margin:0 4px"></div>
     <div class="cta-bar">
-      <button class="cta-btn" onclick="addRecipeToCart('${r.id}')">
+      <button class="cta-btn" onclick="addRecipeToCart('${r.id}','${r.source||'user'}')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
         Add ingredients to Dash
-        <span class="price" id="add-count">${r.ingredients.length - currentDetail.skip.length} items</span>
+        <span class="price" id="add-count">${recipeIngCount(r) - currentDetail.skip.length} items</span>
       </button>
     </div>
   `;
@@ -1101,102 +1142,194 @@ function toggleSkip(ing, el) {
   else currentDetail.skip.push(ing);
   el.classList.toggle('skip');
   document.getElementById('add-count').textContent =
-    `${currentDetail.ingredients.length - currentDetail.skip.length} items`;
+    `${(currentDetail.ingredients||[]).length - currentDetail.skip.length} items`;
 }
 
-function addRecipeToCart(id) {
-  const r = recipes.find(x => x.id === id);
-  if (!r) return;
-  const items = currentDetail.ingredients.filter(i => !currentDetail.skip.includes(i)).map(name => ({ name }));
+function addRecipeToCart(id, source) {
+  if (!currentDetail) return;
+  const items = (currentDetail.ingredients||[])
+    .filter(i => !currentDetail.skip.includes(i))
+    .map(name => ({ name }));
   if (items.length === 0) { toast('Nothing to add — all items skipped.'); return; }
-  // Remove any prior entry for this recipe, then add fresh
   cart = cart.filter(g => g.recipeId !== id);
-  cart.push({ recipeId: id, items, addedAt: Date.now() });
+  cart.push({
+    recipeId: id,
+    recipeTitle: recipeTitle(currentDetail),
+    recipeImage: currentDetail.image || currentDetail.emoji || '🍽',
+    source: source || 'user',
+    items,
+    addedAt: Date.now(),
+  });
   saveCart(cart);
-  toast(`✓ ${r.name} added to Dash`);
+  toast(`✓ ${recipeTitle(currentDetail)} added to Dash`);
   updateCartCount();
   setTimeout(() => show('cart'), 600);
 }
 
 /* ============================================================
-   SEARCH — fuzzy across name, tags, ingredients
+   INGREDIENT → SKU MATCHING
    ============================================================ */
-function runSearch() {
+const STOPWORDS = new Set(['the','and','for','with','your','plus','extra','to','of','or','a','an','in','on','at','by','from','large','small','medium','fresh','dried','ground','whole','chopped','sliced','diced','finely','roughly','to','taste','optional','about','approximately','approx','cup','cups','tbsp','tsp','tbs','tablespoon','teaspoon','ml','l','g','kg','grams','grammes','litre','litres','litres','liter','liters','can','tin','tins','cans','bunch','pack','packet','jar','box','bottle','slice','slices','head','heads','clove','cloves','sprig','sprigs','pinch']);
+
+function tokenize(s) {
+  return String(s).toLowerCase()
+    .replace(/[(),.;:!?]/g, ' ')
+    .replace(/[0-9]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !STOPWORDS.has(w));
+}
+
+function matchIngredientToSKU(ingredient, products) {
+  const toks = tokenize(ingredient);
+  if (toks.length === 0) return null;
+  let best = null;
+  let bestScore = 0;
+  for (const p of products) {
+    const hay = (p.name || '').toLowerCase();
+    let score = 0;
+    for (const t of toks) {
+      if (hay.includes(t)) score += t.length;
+    }
+    // small bonus for Woolies Brands (matches "the cookbook is Woolies-y")
+    if (score > 0 && p.brand && /woolies|wool worth/i.test(p.brand)) score += 1;
+    if (score > bestScore) { bestScore = score; best = p; }
+  }
+  return bestScore >= 3 ? best : null;
+}
+
+async function findProductsForRecipe(id) {
+  const el = document.getElementById('recipe-matches');
+  el.innerHTML = `<div class="loading-shimmer">Searching 5,812 products</div>`;
+  const products = await loadAllProducts();
+  indexProducts(products);
+  const ings = (currentDetail.ingredients || []).filter(i => !currentDetail.skip.includes(i));
+  const matches = ings.map(ing => ({ ing, p: matchIngredientToSKU(ing, products) }));
+  const found = matches.filter(m => m.p);
+  const missing = matches.filter(m => !m.p);
+  el.innerHTML = `
+    <div class="section-h" style="margin-top:18px"><h3>Found ${found.length} of ${ings.length}</h3></div>
+    <div class="product-list">
+      ${found.map(({ing, p}) => `
+        <div class="product-card">
+          <div class="p-img">${productImg(p)}</div>
+          <div class="p-body">
+            <div class="p-name">${escapeHTML(p.name)}</div>
+            <div class="p-meta"><span>${escapeHTML(p.unit||'')}</span>${brandBadgeHTML(p)}</div>
+            <div class="p-price">R ${(p.price||0).toFixed(2)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px">For: ${escapeHTML(ing)}</div>
+          </div>
+          <button class="p-add" onclick="addLoose('${p.sku}')">Add</button>
+        </div>
+      `).join('') || '<p style="color:var(--muted);font-size:13px;margin:8px 4px">No SKUs matched yet.</p>'}
+    </div>
+    ${missing.length ? `
+      <div class="section-h" style="margin-top:14px"><h3>Couldn't match (${missing.length})</h3></div>
+      <ul style="color:var(--muted);font-size:12.5px;padding-left:18px;margin:4px 0">
+        ${missing.map(m => `<li>${escapeHTML(m.ing)}</li>`).join('')}
+      </ul>
+    ` : ''}
+  `;
+}
+
+/* ============================================================
+   SEARCH — unified products + recipes, lazy
+   ============================================================ */
+let searchToken = 0;
+
+async function runSearch() {
   const q = (document.getElementById('q')?.value || '').trim().toLowerCase();
   const bar = document.getElementById('search-bar');
   bar.classList.toggle('has-value', q.length > 0);
   const results = document.getElementById('search-results');
 
   if (!q) {
+    const m = await loadManifest().catch(() => null);
+    const cats = m ? m.products.shards.slice(0, 12) : [];
     results.innerHTML = `
       <div class="section-h"><h3>Popular searches</h3></div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 4px">
-        ${['spinach and feta pie','soup','bread','cheese','chocolate','milk','chicken','pasta']
+        ${['spinach feta pie','soup','bread','cheese','chocolate','milk','chicken','pasta','rusks']
           .map(t => `<button class="tag" style="border:none;cursor:pointer;padding:8px 14px;font-size:13px"
                             onclick="document.getElementById('q').value='${t}';runSearch()">${t}</button>`).join('')}
       </div>
       <div class="section-h" style="margin-top:24px"><h3>Browse aisles</h3></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        ${[...new Set(SEED_PRODUCTS.map(p=>p.cat))].map(c => `
-          <button class="aisle-chip" onclick="document.getElementById('q').value='${escapeAttr(c)}';runSearch()">
-            ${escapeHTML(c)}
+        ${cats.map(c => `
+          <button class="aisle-chip" onclick="document.getElementById('q').value='${escapeAttr(c.cat)}';runSearch()">
+            ${escapeHTML(c.cat)} <span style="color:var(--muted);font-size:11px">(${c.count})</span>
           </button>`).join('')}
       </div>
     `;
     return;
   }
 
-  // PRODUCTS — fuzzy match across name, category, tags
-  const productMatches = SEED_PRODUCTS.map(p => {
-    const hay = [p.name, p.cat, ...(p.tags||[])].join(' ').toLowerCase();
+  const token = ++searchToken;
+  results.innerHTML = `<div class="loading-shimmer">Searching</div>`;
+
+  // Load both data sets in parallel
+  const [products, realRecipes] = await Promise.all([loadAllProducts(), loadAllRecipes()]);
+  indexProducts(products);
+  if (token !== searchToken) return; // user typed more
+
+  const words = q.split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
+
+  // PRODUCTS
+  const productMatches = [];
+  for (const p of products) {
+    const hay = `${p.name} ${p.cat} ${p.brand||''}`.toLowerCase();
     let score = 0;
     if (p.name.toLowerCase().includes(q)) score += 12;
-    if (p.cat.toLowerCase().includes(q)) score += 4;
-    if ((p.tags||[]).some(t => t.includes(q))) score += 6;
-    // word-by-word for multi-word queries like "spinach and feta"
-    const words = q.split(/\s+/).filter(w => w.length>2 && w!=='and' && w!=='the' && w!=='for');
+    if ((p.cat||'').toLowerCase().includes(q)) score += 4;
     const hits = words.filter(w => hay.includes(w));
     score += hits.length * 3;
-    return { p, score };
-  }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
+    if (score > 0) productMatches.push({ p, score });
+  }
+  productMatches.sort((a,b) => b.score - a.score);
 
-  // RECIPES — same as before
-  const recipeMatches = recipes.map(r => {
-    const hay = [r.name, ...(r.tags||[]), ...r.ingredients].join(' ').toLowerCase();
+  // RECIPES
+  const allRecipesCombined = [...userRecipes, ...realRecipes];
+  const recipeMatches = [];
+  for (const r of allRecipesCombined) {
+    const title = recipeTitle(r).toLowerCase();
+    const ings = (r.ingredients||[]).join(' ').toLowerCase();
+    const hay = `${title} ${ings} ${(r.tags||[]).join(' ')} ${r.author||''}`.toLowerCase();
     let score = 0;
-    if (r.name.toLowerCase().includes(q)) score += 10;
-    if ((r.tags||[]).some(t => t.includes(q))) score += 5;
-    const ingHits = r.ingredients.filter(i => i.toLowerCase().includes(q));
-    score += ingHits.length * 2;
-    if (hay.includes(q)) score += 1;
-    return { r, score, ingHits };
-  }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
+    if (title.includes(q)) score += 10;
+    const ingHits = (r.ingredients||[]).filter(i => i.toLowerCase().includes(q));
+    score += Math.min(ingHits.length, 5) * 2;
+    const wordHits = words.filter(w => hay.includes(w));
+    score += wordHits.length;
+    if (score > 0) recipeMatches.push({ r, score, ingHits });
+  }
+  recipeMatches.sort((a,b) => b.score - a.score);
 
   if (productMatches.length === 0 && recipeMatches.length === 0) {
-    results.innerHTML = emptyHTML(`No matches for "${escapeHTML(q)}"`, 'Try a product name like "spinach and feta pie" or an ingredient like "chicken".');
+    results.innerHTML = emptyHTML(`No matches for "${escapeHTML(q)}"`, 'Try a product name or a single ingredient like "chicken".');
     return;
   }
 
   const productHTML = productMatches.length ? `
-    <div class="section-h"><h3>Products (${productMatches.length})</h3></div>
+    <div class="section-h"><h3>Products (${productMatches.length.toLocaleString()})</h3></div>
     <div class="product-list">
-      ${productMatches.slice(0, 20).map(m => productCardHTML(m.p)).join('')}
+      ${productMatches.slice(0, 25).map(m => productCardHTML(m.p)).join('')}
     </div>
+    ${productMatches.length > 25 ? `<p style="text-align:center;color:var(--muted);font-size:12px;margin:10px 0">Showing top 25 of ${productMatches.length.toLocaleString()}.</p>` : ''}
   ` : '';
 
   const recipeHTML = recipeMatches.length ? `
-    <div class="section-h" style="margin-top:18px"><h3>Recipes (${recipeMatches.length})</h3></div>
+    <div class="section-h" style="margin-top:18px"><h3>Recipes (${recipeMatches.length.toLocaleString()})</h3></div>
     <div class="recipe-list">
-      ${recipeMatches.map(m => {
-        const hint = m.ingHits.length && !m.r.name.toLowerCase().includes(q)
+      ${recipeMatches.slice(0, 30).map(m => {
+        const title = recipeTitle(m.r);
+        const hint = m.ingHits.length && !title.toLowerCase().includes(q)
           ? `<div style="font-size:11.5px;color:var(--green);margin-top:4px;font-weight:600">Uses: ${m.ingHits.slice(0,2).map(escapeHTML).join(', ')}${m.ingHits.length>2?'…':''}</div>`
           : '';
         return `
-        <article class="recipe-card" onclick="openRecipe('${m.r.id}')">
-          <div class="img">${m.r.emoji || '🍽'}</div>
+        <article class="recipe-card" onclick="openRecipe('${m.r.id}','${m.r.source||'user'}')">
+          <div class="img">${recipeImg(m.r)}</div>
           <div class="body">
-            <h4>${escapeHTML(m.r.name)}</h4>
-            <div class="meta"><span>⏱ ${escapeHTML(m.r.time||'—')}</span><span>🧂 ${m.r.ingredients.length}</span></div>
+            <h4>${escapeHTML(title)}</h4>
+            <div class="meta"><span>⏱ ${escapeHTML(recipeMetaTime(m.r))}</span><span>🧂 ${recipeIngCount(m.r)}</span></div>
             ${hint}
           </div>
         </article>`;
@@ -1207,24 +1340,36 @@ function runSearch() {
   results.innerHTML = productHTML + recipeHTML;
 }
 
+function productImg(p) {
+  if (p.image && /^https?:/.test(p.image)) {
+    return `<img loading="lazy" src="${escapeAttr(p.image)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🛒',style:'font-size:28px'}))">`;
+  }
+  return '🛒';
+}
+function brandBadgeHTML(p) {
+  if (!p.brand) return '';
+  const isWoolies = /woolies|wool worth/i.test(p.brand);
+  return `<span class="brand-badge ${isWoolies?'':'other'}">${escapeHTML(isWoolies ? 'Woolies' : p.brand)}</span>`;
+}
+
 function productCardHTML(p) {
-  const inCart = (loadLooseCart().find(x => x.id === p.id)?.qty || 0);
+  const inCart = (loadLooseCart().find(x => x.sku === p.sku)?.qty || 0);
   return `
     <div class="product-card">
-      <div class="p-img">${p.emoji}</div>
+      <div class="p-img">${productImg(p)}</div>
       <div class="p-body">
         <div class="p-name">${escapeHTML(p.name)}</div>
-        <div class="p-meta"><span>${escapeHTML(p.unit)}</span> · <span>${escapeHTML(p.cat)}</span></div>
-        <div class="p-price">R ${p.price.toFixed(2)}</div>
+        <div class="p-meta"><span>${escapeHTML(p.unit||'')}</span>${brandBadgeHTML(p)}</div>
+        <div class="p-price">R ${(p.price||0).toFixed(2)}</div>
       </div>
       ${inCart > 0 ? `
         <div class="p-qty">
-          <button onclick="changeLoose('${p.id}', -1)">−</button>
+          <button onclick="changeLoose('${p.sku}', -1)">−</button>
           <span>${inCart}</span>
-          <button onclick="changeLoose('${p.id}', 1)">+</button>
+          <button onclick="changeLoose('${p.sku}', 1)">+</button>
         </div>
       ` : `
-        <button class="p-add" onclick="addLoose('${p.id}')">Add</button>
+        <button class="p-add" onclick="addLoose('${p.sku}')">Add</button>
       `}
     </div>
   `;
@@ -1249,14 +1394,14 @@ function renderCart() {
     updateCartCount();
     return;
   }
-  // Aggregate identical ingredient names across recipes
+
+  // aggregate dup ingredient names
   const agg = new Map();
   cart.forEach(g => {
-    const r = recipes.find(x => x.id === g.recipeId);
     g.items.forEach(it => {
       const key = it.name.toLowerCase();
       if (!agg.has(key)) agg.set(key, { name: it.name, sources: [] });
-      agg.get(key).sources.push(r?.name || g.recipeId);
+      agg.get(key).sources.push(g.recipeTitle || g.recipeId);
     });
   });
 
@@ -1264,14 +1409,13 @@ function renderCart() {
   const looseItems = loose.reduce((s, x) => s + x.qty, 0);
   const total = recipeItems + looseItems;
   const looseSubtotal = loose.reduce((s, x) => {
-    const p = SEED_PRODUCTS.find(pp => pp.id === x.id);
+    const p = productBySku(x.sku);
     return s + (p ? p.price * x.qty : 0);
   }, 0);
 
   document.getElementById('cart-sub').textContent =
     `${total} item${total===1?'':'s'} · ${cart.length} recipe${cart.length===1?'':'s'} + ${loose.length} loose`;
 
-  // Loose products section
   const looseHTML = loose.length ? `
     <div class="cart-recipe-group">
       <div class="group-h">
@@ -1282,16 +1426,16 @@ function renderCart() {
         </div>
       </div>
       ${loose.map(x => {
-        const p = SEED_PRODUCTS.find(pp => pp.id === x.id);
-        if (!p) return '';
+        const p = productBySku(x.sku);
+        if (!p) return `<div class="cart-item"><div class="name" style="color:var(--muted)">Loading SKU ${escapeHTML(x.sku)}…</div></div>`;
         return `
         <div class="cart-item">
-          <span style="font-size:18px;margin-right:4px">${p.emoji}</span>
-          <div class="name">${escapeHTML(p.name)}<div style="font-size:11.5px;color:var(--muted);font-weight:400">${escapeHTML(p.unit)}</div></div>
+          <div style="width:28px;height:28px;border-radius:6px;overflow:hidden;background:var(--bg);margin-right:8px;flex-shrink:0">${productImg(p)}</div>
+          <div class="name">${escapeHTML(p.name)}<div style="font-size:11.5px;color:var(--muted);font-weight:400">${escapeHTML(p.unit||'')}</div></div>
           <div class="p-qty small">
-            <button onclick="changeLoose('${p.id}', -1)">−</button>
+            <button onclick="changeLoose('${p.sku}', -1)">−</button>
             <span>${x.qty}</span>
-            <button onclick="changeLoose('${p.id}', 1)">+</button>
+            <button onclick="changeLoose('${p.sku}', 1)">+</button>
           </div>
           <div style="font-weight:700;font-size:13.5px;margin-left:10px;min-width:60px;text-align:right">R ${(p.price*x.qty).toFixed(2)}</div>
         </div>`;
@@ -1299,22 +1443,22 @@ function renderCart() {
     </div>
   ` : '';
 
-  // Per-recipe groups
   const groups = cart.map(g => {
-    const r = recipes.find(x => x.id === g.recipeId);
-    if (!r) return '';
+    const img = g.recipeImage && /^https?:/.test(g.recipeImage)
+      ? `<img src="${escapeAttr(g.recipeImage)}" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🍽',className:'emoji'}))">`
+      : `<span class="emoji">${g.recipeImage || '🍽'}</span>`;
     return `
       <div class="cart-recipe-group">
         <div class="group-h">
-          <span class="emoji">${r.emoji || '🍽'}</span>
+          ${img}
           <div class="info">
-            <h4>${escapeHTML(r.name)}</h4>
+            <h4>${escapeHTML(g.recipeTitle || g.recipeId)}</h4>
             <div class="sub">${g.items.length} ingredients</div>
           </div>
           <button class="remove" onclick="removeRecipeFromCart('${g.recipeId}')">Remove</button>
         </div>
         ${g.items.map(it => {
-          const dup = agg.get(it.name.toLowerCase()).sources.length > 1;
+          const dup = agg.get(it.name.toLowerCase())?.sources.length > 1;
           return `<div class="cart-item">
             <div class="name">${escapeHTML(it.name)}</div>
             ${dup ? `<span class="from">×${agg.get(it.name.toLowerCase()).sources.length}</span>` : ''}
@@ -1322,6 +1466,11 @@ function renderCart() {
         }).join('')}
       </div>`;
   }).join('');
+
+  // If any loose items are unrendered SKUs, load products and re-render
+  if (loose.some(x => !productBySku(x.sku)) && !LOADED_ALL_PRODUCTS) {
+    loadAllProducts().then(prods => { indexProducts(prods); renderCart(); });
+  }
 
   el.innerHTML = `
     ${renderAddressBlock()}
@@ -1457,9 +1606,9 @@ function saveRecipe(e) {
   const tags = document.getElementById('r-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
   const ings = document.getElementById('r-ings').value.split('\n').map(t=>t.trim()).filter(Boolean);
   if (!name || ings.length === 0) return;
-  const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + Date.now().toString(36);
-  recipes.unshift({ id, name, emoji, time, tags, ingredients: ings, skip: [] });
-  saveRecipes(recipes);
+  const id = 'u-' + name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + Date.now().toString(36);
+  userRecipes.unshift({ id, title: name, emoji, time, tags, ingredients: ings, skip: [], source: 'user' });
+  saveUserRecipes(userRecipes);
   e.target.reset();
   toast(`✓ ${name} saved`);
   show('cookbook');
@@ -1468,9 +1617,9 @@ function saveRecipe(e) {
 /* ============================================================
    UTILS
    ============================================================ */
-function escapeHTML(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function escapeAttr(s) { return String(s).replace(/'/g, '\\&#39;').replace(/"/g,'&quot;'); }
-function unescapeAttr(s) { return String(s).replace(/\\&#39;/g, "'").replace(/&quot;/g,'"'); }
+function escapeHTML(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s) { return String(s ?? '').replace(/'/g, '\\&#39;').replace(/"/g,'&quot;'); }
+function unescapeAttr(s) { return String(s ?? '').replace(/\\&#39;/g, "'").replace(/&quot;/g,'"'); }
 function emptyHTML(title, msg) {
   return `<div class="empty"><div class="icon">🍽</div><h4>${escapeHTML(title)}</h4><p>${escapeHTML(msg)}</p></div>`;
 }
@@ -1483,7 +1632,11 @@ function toast(msg) {
 }
 
 /* boot */
-show('home');
+loadManifest().then(() => show('home')).catch(err => {
+  console.error('Manifest load failed', err);
+  document.getElementById('favs-scroll').innerHTML = emptyHTML('Could not load catalog', 'Check your connection and reload.');
+});
 </script>
+
 </body>
 </html>

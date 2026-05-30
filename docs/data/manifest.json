@@ -1,0 +1,287 @@
+{
+  "version": "1",
+  "generated": "2026-05-30T03:42:37.696380Z",
+  "products": {
+    "total": 5812,
+    "shards": [
+      {
+        "cat": "Pantry",
+        "slug": "pantry",
+        "file": "data/products/pantry.json",
+        "count": 1323,
+        "bytes": 480980
+      },
+      {
+        "cat": "Chocolates Sweets Snacks",
+        "slug": "chocolates-sweets-snacks",
+        "file": "data/products/chocolates-sweets-snacks.json",
+        "count": 749,
+        "bytes": 284517
+      },
+      {
+        "cat": "Promotions",
+        "slug": "promotions",
+        "file": "data/products/promotions.json",
+        "count": 538,
+        "bytes": 193306
+      },
+      {
+        "cat": "Other",
+        "slug": "other",
+        "file": "data/products/other.json",
+        "count": 483,
+        "bytes": 172625
+      },
+      {
+        "cat": "Milk Dairy Eggs",
+        "slug": "milk-dairy-eggs",
+        "file": "data/products/milk-dairy-eggs.json",
+        "count": 410,
+        "bytes": 151107
+      },
+      {
+        "cat": "Fruit Vegetables Salads",
+        "slug": "fruit-vegetables-salads",
+        "file": "data/products/fruit-vegetables-salads.json",
+        "count": 401,
+        "bytes": 137156
+      },
+      {
+        "cat": "Meat Poultry Fish",
+        "slug": "meat-poultry-fish",
+        "file": "data/products/meat-poultry-fish.json",
+        "count": 396,
+        "bytes": 143847
+      },
+      {
+        "cat": "Beverages Juices",
+        "slug": "beverages-juices",
+        "file": "data/products/beverages-juices.json",
+        "count": 361,
+        "bytes": 139791
+      },
+      {
+        "cat": "Frozen Food",
+        "slug": "frozen-food",
+        "file": "data/products/frozen-food.json",
+        "count": 199,
+        "bytes": 74808
+      },
+      {
+        "cat": "Bakery",
+        "slug": "bakery",
+        "file": "data/products/bakery.json",
+        "count": 153,
+        "bytes": 51751
+      },
+      {
+        "cat": "Deli Entertaining",
+        "slug": "deli-entertaining",
+        "file": "data/products/deli-entertaining.json",
+        "count": 136,
+        "bytes": 47875
+      },
+      {
+        "cat": "Food Basket",
+        "slug": "food-basket",
+        "file": "data/products/food-basket.json",
+        "count": 103,
+        "bytes": 36523
+      },
+      {
+        "cat": "Food To Go",
+        "slug": "food-to-go",
+        "file": "data/products/food-to-go.json",
+        "count": 94,
+        "bytes": 32901
+      },
+      {
+        "cat": "Ready Meals",
+        "slug": "ready-meals",
+        "file": "data/products/ready-meals.json",
+        "count": 93,
+        "bytes": 31331
+      },
+      {
+        "cat": "Braai Shop",
+        "slug": "braai-shop",
+        "file": "data/products/braai-shop.json",
+        "count": 52,
+        "bytes": 19544
+      },
+      {
+        "cat": "Household",
+        "slug": "household",
+        "file": "data/products/household.json",
+        "count": 47,
+        "bytes": 17429
+      },
+      {
+        "cat": "Wellbeing Plant Based",
+        "slug": "wellbeing-plant-based",
+        "file": "data/products/wellbeing-plant-based.json",
+        "count": 37,
+        "bytes": 13367
+      },
+      {
+        "cat": "Puddings Desserts",
+        "slug": "puddings-desserts",
+        "file": "data/products/puddings-desserts.json",
+        "count": 35,
+        "bytes": 12373
+      },
+      {
+        "cat": "Soup Shop",
+        "slug": "soup-shop",
+        "file": "data/products/soup-shop.json",
+        "count": 31,
+        "bytes": 10953
+      },
+      {
+        "cat": "Flavours of the World",
+        "slug": "flavours-of-the-world",
+        "file": "data/products/flavours-of-the-world.json",
+        "count": 29,
+        "bytes": 9985
+      },
+      {
+        "cat": "Kids",
+        "slug": "kids",
+        "file": "data/products/kids.json",
+        "count": 22,
+        "bytes": 8408
+      },
+      {
+        "cat": "Baby",
+        "slug": "baby",
+        "file": "data/products/baby.json",
+        "count": 21,
+        "bytes": 8213
+      },
+      {
+        "cat": "Shop by Preference",
+        "slug": "shop-by-preference",
+        "file": "data/products/shop-by-preference.json",
+        "count": 20,
+        "bytes": 6968
+      },
+      {
+        "cat": "Pack a Picnic",
+        "slug": "pack-a-picnic",
+        "file": "data/products/pack-a-picnic.json",
+        "count": 14,
+        "bytes": 4521
+      },
+      {
+        "cat": "Toiletries Health",
+        "slug": "toiletries-health",
+        "file": "data/products/toiletries-health.json",
+        "count": 14,
+        "bytes": 5596
+      },
+      {
+        "cat": "Christmas",
+        "slug": "christmas",
+        "file": "data/products/christmas.json",
+        "count": 10,
+        "bytes": 3793
+      },
+      {
+        "cat": "Woolies Favourites Shop",
+        "slug": "woolies-favourites-shop",
+        "file": "data/products/woolies-favourites-shop.json",
+        "count": 9,
+        "bytes": 3121
+      },
+      {
+        "cat": "Pets",
+        "slug": "pets",
+        "file": "data/products/pets.json",
+        "count": 9,
+        "bytes": 3734
+      },
+      {
+        "cat": "Eid",
+        "slug": "eid",
+        "file": "data/products/eid.json",
+        "count": 9,
+        "bytes": 3298
+      },
+      {
+        "cat": "Valentines Day",
+        "slug": "valentines-day",
+        "file": "data/products/valentines-day.json",
+        "count": 6,
+        "bytes": 2238
+      },
+      {
+        "cat": "Easter",
+        "slug": "easter",
+        "file": "data/products/easter.json",
+        "count": 4,
+        "bytes": 1524
+      },
+      {
+        "cat": "Mother s Day",
+        "slug": "mother-s-day",
+        "file": "data/products/mother-s-day.json",
+        "count": 2,
+        "bytes": 827
+      },
+      {
+        "cat": "Father s Day",
+        "slug": "father-s-day",
+        "file": "data/products/father-s-day.json",
+        "count": 2,
+        "bytes": 766
+      }
+    ]
+  },
+  "recipes": {
+    "total": 2383,
+    "shards": [
+      {
+        "bucket": "a-c",
+        "file": "data/recipes/a-c.json",
+        "count": 763,
+        "bytes": 810355
+      },
+      {
+        "bucket": "h-l",
+        "file": "data/recipes/h-l.json",
+        "count": 205,
+        "bytes": 231231
+      },
+      {
+        "bucket": "m-p",
+        "file": "data/recipes/m-p.json",
+        "count": 382,
+        "bytes": 403263
+      },
+      {
+        "bucket": "q-s",
+        "file": "data/recipes/q-s.json",
+        "count": 494,
+        "bytes": 537743
+      },
+      {
+        "bucket": "t-z",
+        "file": "data/recipes/t-z.json",
+        "count": 264,
+        "bytes": 258007
+      },
+      {
+        "bucket": "d-g",
+        "file": "data/recipes/d-g.json",
+        "count": 266,
+        "bytes": 270161
+      },
+      {
+        "bucket": "other",
+        "file": "data/recipes/other.json",
+        "count": 9,
+        "bytes": 9003
+      }
+    ]
+  }
+}
